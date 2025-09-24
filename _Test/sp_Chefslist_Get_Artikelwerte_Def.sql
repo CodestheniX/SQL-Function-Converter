@@ -1,7 +1,6 @@
-CREATE PROCEDURE %PROC% (IN @Art_Nummer      INTEGER,       //Artikel
-                         IN @Bestellmenge    NUMERIC(18,4), --Bestellmenge
-                         IN @Ein_Langtext    VARCHAR(20),   /*Einheit */
-                         IN @Datum_Test 	 DATE DEFAULT TODAY())  //*** Einheit						 
+﻿CREATE PROCEDURE %PROC% (IN @Art_Nummer      INTEGER,       //Artikel
+                         IN @Bestellmenge    NUMERIC(18,4), //Bestellmenge
+                         IN @Ein_Langtext    VARCHAR(20))   //Einheit
 BEGIN
 
   DECLARE varEin_Nummer INTEGER;
@@ -19,12 +18,10 @@ BEGIN
   
   // Nun die benötigten Daten liefern
   SELECT
-    IF (varEin_Nummer = Artikel.Ein_Nummer) THEN
-      CEILING(@Bestellmenge)
+    IF (varEin_Nummer = ISNULL(Artikel.Ein_Nummer_Inhalt, '')) THEN      
+      CAST(@Bestellmenge * fn_Einheitsfaktor(Artikel.Art_Inhalt, Artikel.Art_Gewicht, 1, 0) AS INTEGER)
     ELSE
-      IF (varEin_Nummer = Artikel.Ein_Nummer_Inhalt) THEN
-        CEILING(@Bestellmenge * fn_Einheitsfaktor(Artikel.Art_Inhalt, Artikel.Art_Gewicht, 1, 0))
-      ENDIF
+      CAST(@Bestellmenge AS INTEGER)
     ENDIF                           AS Kolli_Menge,
     EinheitKolli.Ein_Langtext       AS Kolli_Bezeichnung,
     Artikel.Art_Inhalt              AS Art_Inhalt

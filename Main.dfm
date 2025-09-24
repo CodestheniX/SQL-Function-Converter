@@ -1,7 +1,7 @@
 object frmFunctionConverter: TfrmFunctionConverter
   Left = 0
   Top = 0
-  Caption = 'SQL - Function - Converter'
+  Caption = 'SQL-Function-Converter'
   ClientHeight = 640
   ClientWidth = 1268
   Color = clBtnFace
@@ -13,6 +13,7 @@ object frmFunctionConverter: TfrmFunctionConverter
   Menu = menMain
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   TextHeight = 13
   object pnlMain: TPanel
@@ -73,17 +74,6 @@ object frmFunctionConverter: TfrmFunctionConverter
         Font.Height = -15
         Font.Name = 'Tahoma'
         Font.Style = []
-        Lines.Strings = (
-          'CREATE sp_... IN (IN @Zahl INTEGER DEFAULT 9, '
-          '                         IN @Text VARCHAR(25),'
-          '                         IN '#8364'Auftrag INTEGER)'
-          ''
-          ''
-          'BEGIN'
-          ''
-          '  DECLARE varKommscheinDruck INTEGER;'
-          ''
-          'END;')
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
@@ -185,7 +175,7 @@ object frmFunctionConverter: TfrmFunctionConverter
         end
       end
     end
-    object pnlVariables: TPanel
+    object pnlParameter: TPanel
       Left = 454
       Top = 1
       Width = 360
@@ -193,29 +183,29 @@ object frmFunctionConverter: TfrmFunctionConverter
       Align = alLeft
       TabOrder = 1
       ExplicitHeight = 637
-      object lblVariables: TLabel
+      object lblParameter: TLabel
         Left = 1
         Top = 1
         Width = 358
         Height = 29
         Align = alTop
         Alignment = taCenter
-        Caption = 'Variablen'
+        Caption = 'Parameter'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -24
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitWidth = 112
+        ExplicitWidth = 125
       end
-      object grdVariables: TStringGrid
+      object grdParameter: TStringGrid
         Left = 1
         Top = 30
         Width = 358
         Height = 566
         Align = alClient
-        ColCount = 3
+        ColCount = 4
         DefaultColWidth = 110
         FixedColor = clAppWorkSpace
         FixedCols = 0
@@ -228,11 +218,15 @@ object frmFunctionConverter: TfrmFunctionConverter
         GridLineWidth = 2
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSizing, goColSizing, goColMoving, goEditing, goFixedRowDefAlign]
         ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 0
-        OnSelectCell = grdVariablesSelectCell
+        OnKeyDown = grdParameterKeyDown
+        OnMouseMove = grdParameterMouseMove
+        OnSelectCell = grdParameterSelectCell
         ExplicitHeight = 565
       end
-      object pnlVariablesButton: TPanel
+      object pnlParameterButton: TPanel
         Left = 1
         Top = 596
         Width = 358
@@ -261,7 +255,7 @@ object frmFunctionConverter: TfrmFunctionConverter
   end
   object menMain: TMainMenu
     Left = 28
-    Top = 482
+    Top = 286
     object mitDatei: TMenuItem
       Caption = 'Datei'
       object mitLoadScript: TMenuItem
@@ -272,19 +266,53 @@ object frmFunctionConverter: TfrmFunctionConverter
       object mitSaveOutput: TMenuItem
         Caption = 'Ausgabe speichern'
         ShortCut = 16467
+        OnClick = mitSaveOutputClick
       end
     end
     object mitOptionen: TMenuItem
       Caption = 'Optionen'
+      object mitAdjustColumn: TMenuItem
+        Caption = 'Spaltenbreite anpassen'
+        ShortCut = 112
+        OnClick = mitAdjustColumnClick
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object mitReturnToSelect: TMenuItem
+        Caption = 'Funktion | Return in SELECT umwandeln '
+        Checked = True
+        OnClick = mitReturnToSelectClick
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object mitShowComments: TMenuItem
+        Caption = 'Kommentare im Grid anzeigen'
+        Checked = True
+        OnClick = mitShowCommentsClick
+      end
       object mitStyles: TMenuItem
         Caption = 'Styles'
       end
     end
   end
-  object dlgOpen: TOpenDialog
-    Filter = 'SQL-Dateien|*.sql|Text-Dateien|*.txt|Alle Dateien|*.*'
-    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 73
-    Top = 481
+  object dlgSave: TSaveTextFileDialog
+    DefaultExt = 'sql'
+    Filter = 'SQL-Datei (.sql)|*.sql|Text-Datei (.txt)|*.txt'
+    Encodings.Strings = (
+      'UTF-8')
+    ShowEncodingList = False
+    Left = 134
+    Top = 286
+  end
+  object dlgOpen: TOpenTextFileDialog
+    Filter = 
+      'SQL-Dateien (*.sql)|*.sql|Text-Dateien (*.txt)|*.txt|Alle Dateie' +
+      'n (*.*)|*.*'
+    Encodings.Strings = (
+      'UTF-8')
+    Left = 83
+    Top = 286
   end
 end

@@ -9,14 +9,21 @@ uses
 
   { TODO -c:
    Must
-    -
+    - GridToParameter -> DONE
+    - Zeilen ohne Daten (Nur Kommentare) -> DONE
+    - GridParameterToOutput -> Hier weiter
+      - DECLARE @... INTEGER;
+      - SET @... = x;
+      - RETURN >> SELECT
 
    Should
     - Error-Handling beim Konvert
+    - Enter im Grid: Zeile runter -> DONE
+    - Nach Konvert -> 3. Column markieren -> DONE
 
    Could
-    - Kommentare speichern und dann anzeigen ?
-    - Doppelklick => editor
+    - Kommentare speichern und dann anzeigen -> DONE
+    - Doppelklick => Editor
 }
 
 type
@@ -27,25 +34,31 @@ type
     splLeft: TSplitter;
     memInput: TMemo;
     memOutput: TMemo;
-    pnlVariables: TPanel;
-    lblVariables: TLabel;
+    pnlParameter: TPanel;
+    lblParameter: TLabel;
     splRight: TSplitter;
-    grdVariables: TStringGrid;
+    grdParameter: TStringGrid;
     pnlInputButton: TPanel;
     btnConvert: TButton;
     pnlOutputButton: TPanel;
     btnCopy: TButton;
-    pnlVariablesButton: TPanel;
+    pnlParameterButton: TPanel;
     btnRefresh: TButton;
     menMain: TMainMenu;
     mitDatei: TMenuItem;
     mitLoadScript: TMenuItem;
     mitSaveOutput: TMenuItem;
-    dlgOpen: TOpenDialog;
     lblInput: TLabel;
     lblOutput: TLabel;
     mitOptionen: TMenuItem;
     mitStyles: TMenuItem;
+    N1: TMenuItem;
+    mitAdjustColumn: TMenuItem;
+    mitShowComments: TMenuItem;
+    mitReturnToSelect: TMenuItem;
+    N2: TMenuItem;
+    dlgSave: TSaveTextFileDialog;
+    dlgOpen: TOpenTextFileDialog;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -53,29 +66,51 @@ type
     procedure btnCopyClick(Sender: TObject);
     procedure mitStyleClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure grdVariablesSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    procedure grdParameterSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure btnRefreshClick(Sender: TObject);
+    procedure grdParameterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure mitAdjustColumnClick(Sender: TObject);
+    procedure mitShowCommentsClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure grdParameterMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure mitReturnToSelectClick(Sender: TObject);
+    procedure mitSaveOutputClick(Sender: TObject);
   private
-    ChangingStyle : boolean;
-    function getOffset(sText : String) : integer;
+    ConfigFile: TIniFile;
+    iLastRow  : integer;
+    iLastCol  : integer;
+    function AdjustColumn(iCol : integer) : integer;
+    function getOffset(sText: String; checkDatatype: boolean) : integer;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
     procedure ParameterToGrid;
     procedure GridParameterToOutput;
-    procedure DeleteComment(var sParameter : String);
-    procedure WriteVariableRow(iRow : integer; sParameter: String);
+    procedure ExtractComment(var sParameter, sKommentar : String);
+    procedure WriteVariableRow(sParameter: String);
     procedure AdjustGrid;
-  public
-    slParameter : TStringlist;
+    procedure HandleCommentColumnVisibility;
+    procedure SetSavefileName;
   end;
 
 var
   frmFunctionConverter: TfrmFunctionConverter;
 
 const
+  //*** Form
+  PROGRAMM_NAME       = 'SQL-Function-Converter';
+  MIN_COL_WIDTH       = 110;
+  PNL_INPUT_WIDTH     = 450;
+  PNL_PARAMETER_WIDTH = 360;
+  PNL_OUTPUT_WIDTH    = 450;
+
+  //*** Konstanten für den Dateinamen
+  CREATE_FUNCTION     = 'CREATE FUNCTION ';
+  CREATE_PROCEDURE    = 'CREATE PROCEDURE ';
+
   //*** Konstanten für die Parameter (Kopf)
-  PARAMETER_START     = 'IN @';
+  //PARAMETER_START     = 'IN @';
+  PARAMETER_START     = '@';
   PARAMETER_END       = ')';
   PARAMETER_DELIMITER = ',';
   FUNCTION_END        = 'RETURNS';
@@ -87,76 +122,122 @@ const
   cvBezeichnung = 0;
   cvDatentyp    = 1;
   cvWert        = 2;
-  cvKommentar   = 3; { TODO -c   : Zuerst das mit der Row klären }
+  cvKommentar   = 3;
 
   //*** Sonstiges
-  MIN_COL_WIDTH = 110;
-  CR            = #13;
-  CRLF          = #13#10;
+  CR    = #13;
+  CRLF  = #13#10;
 
 implementation
 
 {$R *.dfm}
 
-procedure TfrmFunctionConverter.AdjustGrid;
+function TfrmFunctionConverter.AdjustColumn(iCol : integer) : integer;
 var
-  iMaxWidth   : integer;
-  iTextWidth  : integer;
-  iRow        : integer;
-  iCol        : integer;
-  iPanelWidth : integer;
+  iRow : integer;
+  iMaxWidth  : integer;
+  iTextWidth : integer;
 begin
-  with grdVariables do begin
-    //*** Setzen des Headers
-    if RowCount > 1 then
-      FixedRows := 1
-    ;
-
-    //*** Anpassung der Spaltenbreiten an die Länge des Inhalts
-    iPanelWidth := 0;
-    for iCol := 0 to ColCount - 1 do begin
-      iMaxWidth := MIN_COL_WIDTH;
-      for iRow := 0 to RowCount -1 do begin
+  with grdParameter do begin
+    iMaxWidth :=  MIN_COL_WIDTH;
+    if RowCount > 0 then begin
+      for iRow := 1 to RowCount -1 do begin
         iTextWidth := Canvas.TextWidth(Cells[iCol, iRow]) + GridLineWidth + 10;
         if (iTextWidth > iMaxWidth) then begin
           iMaxWidth := iTextWidth;
         end;
       end;
       ColWidths[iCol] := iMaxWidth;
+    end;
+  end;
+  Result := iMaxWidth;
+end;
+
+procedure TfrmFunctionConverter.AdjustGrid;
+var
+  iCol        : integer;
+  iMaxWidth   : integer;
+  iPanelWidth : integer;
+begin
+  with grdParameter do begin
+    // Setzen des Headers
+    if RowCount > 1 then
+      FixedRows := 1
+    ;
+    // Anpassung der Spaltenbreiten an die Länge des Inhalts - Nur bis Wert
+    iPanelWidth := 0;
+    for iCol := 0 to cvWert do begin
+      iMaxWidth   := AdjustColumn(iCol);
       iPanelWidth := iPanelWidth + iMaxWidth;
     end;
-    pnlVariables.Width := iPanelWidth + 25;
+
+    // Kommentar-Spalte fix setzen
+    if mitShowComments.Checked then begin
+      ColWidths[cvKommentar] := MIN_COL_WIDTH;
+      iPanelWidth := iPanelWidth + ColWidths[cvKommentar];
+    end;
+
+    // Panel anpassen
+    pnlParameter.Width := iPanelWidth + 25;
   end;
 end;
 
 procedure TfrmFunctionConverter.btnConvertClick(Sender: TObject);
 begin
-  //*** Konvert der Parameter ins Grid
+  // Konvert der Parameter ins Grid
   ParameterToGrid;
+
+  // Möglichen Dateinamen ermitteln
+  SetSavefileName;
+
+  // Die Spalte "Wert" in der ersten Zeile selektieren
+  with grdParameter do begin
+    Col := 2;
+    if RowCount > 1 then
+      Row := 1
+    ;
+    SetFocus;
+  end;
 end;
 
 procedure TfrmFunctionConverter.InitForm;
 begin
-  slParameter := TStringList.Create;
-  slParameter.Delimiter := ',';
+  with ConfigFile do begin
+    //Menü
+    mitShowComments.Checked   := ReadBool('Form'  , 'ShowComments'  , true);
+    mitReturnToSelect.Checked := ReadBool('Output', 'ReturnToSelect', true);
+
+    //Panels
+    pnlInput.Width  := ReadInteger('Form', 'pnlInputWidth' , PNL_INPUT_WIDTH);
+    pnlOutput.Width := ReadInteger('Form', 'pnlOutputWidth', PNL_OUTPUT_WIDTH);
+  end;
+
+  //Parameter-Grid
   InitGrid(True);
 end;
 
 procedure TfrmFunctionConverter.InitGrid(FillHeader : boolean);
+var
+  iRow: integer;
 begin
-  with grdVariables do begin
-    //*** Initalisierung des Grids
+  with grdParameter do begin
+    // Initalisierung des Grids
     if FillHeader then begin
       RowCount  := 2;
       FixedRows := 1;
       Cells[cvBezeichnung, 0] := 'Bezeichnung';
       Cells[cvDatentyp   , 0] := 'Datentyp';
       Cells[cvWert       , 0] := 'Wert';
+      Cells[cvKommentar  , 0] := 'Kommentar';
     end
     else begin
+      for iRow := 1 to RowCount do begin
+        Rows[iRow].Clear;
+      end;
       RowCount := 1;
     end;
   end;
+  HandleCommentColumnVisibility;
 end;
 
 procedure TfrmFunctionConverter.InitStyles;
@@ -187,6 +268,11 @@ begin
   end;
 end;
 
+procedure TfrmFunctionConverter.mitAdjustColumnClick(Sender: TObject);
+begin
+  AdjustColumn(grdParameter.Col);
+end;
+
 procedure TfrmFunctionConverter.mitLoadScriptClick(Sender: TObject);
 begin
   if (dlgOpen.Execute) then begin
@@ -195,13 +281,32 @@ begin
   end;
 end;
 
+procedure TfrmFunctionConverter.mitSaveOutputClick(Sender: TObject);
+begin
+  if (dlgSave.Execute) then begin
+    memOutput.Lines.SaveToFile(dlgSave.FileName, TEncoding.UTF8);
+  end;
+end;
+
+procedure TfrmFunctionConverter.mitReturnToSelectClick(Sender: TObject);
+begin
+  mitReturnToSelect.Checked := not mitReturnToSelect.Checked;
+  ConfigFile.WriteBool('Output', 'ReturnToSelect', mitReturnToSelect.Checked);
+end;
+
+procedure TfrmFunctionConverter.mitShowCommentsClick(Sender: TObject);
+begin
+  mitShowComments.Checked := not mitShowComments.Checked;
+  HandleCommentColumnVisibility;
+  ConfigFile.WriteBool('Form', 'ShowComments', mitShowComments.Checked);
+end;
+
 procedure TfrmFunctionConverter.mitStyleClick(Sender: TObject);
 var
   ii     : integer;
   sStyle : String;
 begin
   if (MessageDlg('Achtung | Beim Wechseln des Styles wird die Form neugeladen.' + CRLF + 'Soll der Style gewechselt werden?' , TMsgDlgType.mtWarning, mbYesNo, 0) = mrYes) then begin
-    ChangingStyle := True;
     sStyle := StringReplace(TMenuItem(Sender).Caption, '&', '', [rfReplaceAll, rfIgnoreCase]);
     TStyleManager.SetStyle(sStyle);
     (Sender as TMenuItem).Checked := True;
@@ -212,86 +317,185 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.WriteVariableRow(iRow : integer; sParameter: String);
-const
-  caStart = 0;
-  caEnd   = 1;
+procedure TfrmFunctionConverter.WriteVariableRow(sParameter: String);
 var
+  iPosStart     : integer;
+  iPosEnd       : integer;
   sBezeichnung  : String;
   sDatentyp     : String;
   sWert         : String;
-  aPosition     : array [cvBezeichnung..cvWert, caStart..caEnd] of integer;
+  sKommentar    : String;
 begin
-  if (sParameter <> '') then begin
-    DeleteComment(sParameter);
-
-    //*** Die Start-/ & Stop-Positionen ermitteln
+  //ShowMessage(sParameter);
+  ExtractComment(sParameter, sKommentar);
+  if (sParameter <> '') and (Length(sParameter) > 5) then begin
     // Die Bezeichnung - Vom Start bis zum ersten Leerzeichen
-    aPosition[cvBezeichnung, caStart] := 0;
-    aPosition[cvBezeichnung, caEnd]   := Pos(' ', sParameter, 1);
+    iPosStart := 0;
+    iPosEnd   := Pos(' ', sParameter, 1);
+    sBezeichnung := Trim(Copy(sParameter, iPosStart, iPosEnd));
+    sParameter   := Trim(Copy(sParameter, iPosEnd, sParameter.Length));
 
-    // Der Default-Wert - Vom Wort "Default" bis zum Ende (- Offset)
-    aPosition[cvWert, caStart] := UpperCase(sParameter).IndexOf(DEFAULT_START, aPosition[cvBezeichnung, caEnd]);
-    if (aPosition[cvWert, caStart] <> -1) then begin
-      aPosition[cvWert, caStart] := aPosition[cvWert, caStart] + Length(DEFAULT_START);
-      aPosition[cvWert, caEnd]   := sParameter.Length;
+    // Der Default-Wert - Vom Wort "DEFAULT" bis zum Ende (- Offset)
+    iPosStart := UpperCase(sParameter).IndexOf(DEFAULT_START);
+    if (iPosStart > 0) then begin
+      iPosStart  := iPosStart + Length(DEFAULT_START);
+      iPosEnd    := Length(sParameter) - getOffset(sParameter, false);
+      sWert      := Trim(Copy(sParameter, iPosStart, iPosEnd - iPosStart + 1));
+      sParameter := Trim(Copy(sParameter, 1, iPosStart - Length(DEFAULT_START)));
     end;
 
     // Der Datentyp - Vom Ende der Bezeichnung bis zum Wort "Default" oder bis zum Ende
-    aPosition[cvDatentyp, caStart] := aPosition[cvBezeichnung, caEnd] + 1;
-    if (aPosition[cvWert, caStart] <> -1) then
-      aPosition[cvDatentyp, caEnd] := aPosition[cvWert, caStart] - Length(DEFAULT_START) + 1
-    else
-      aPosition[cvDatentyp, caEnd] := sParameter.Length
-    ;
-    aPosition[cvDatentyp, caEnd] := aPosition[cvDatentyp, caEnd] - aPosition[cvDatentyp, caStart];
-
-    //*** Die Daten ermitteln
-    sBezeichnung  := Trim(Copy(sParameter, aPosition[cvBezeichnung, caStart], aPosition[cvBezeichnung, caEnd]));
-    sDatentyp     := Trim(Copy(sParameter, aPosition[cvDatentyp, caStart]   , aPosition[cvDatentyp, caEnd]));
-    if (aPosition[cvWert, caStart] > 0) then begin
-      sWert := Trim(Copy(sParameter, aPosition[cvWert, caStart], aPosition[cvWert, caEnd]));
-      sWert := Trim(Copy(sWert, 0, sWert.Length - getOffset(sWert)));
-    end;
+    iPosStart := 0;
+    iPosEnd   := sParameter.Length - getOffset(sParameter, true);
+    sDatentyp := Trim(Copy(sParameter, iPosStart, iPosEnd));
 
     //*** Zum Schluss noch alle Werte in die Grid-Zeile packen
-    with grdVariables do begin
+    with grdParameter do begin
       RowCount := RowCount + 1;
-      Cells[cvBezeichnung, iRow] := sBezeichnung;
-      Cells[cvDatentyp   , iRow] := sDatentyp;
-      Cells[cvWert       , iRow] := sWert;
+      Cells[cvBezeichnung, RowCount -1] := sBezeichnung;
+      Cells[cvDatentyp   , RowCount -1] := sDatentyp;
+      Cells[cvWert       , RowCount -1] := sWert;
+      Cells[cvKommentar  , RowCount -1] := sKommentar;
+    end;
+    Application.ProcessMessages;
+  end;
+end;
+
+// ALTE Prozedur - Mit Arrays
+//procedure TfrmFunctionConverter.WriteVariableRow(sParameter: String);
+//const
+//  caStart = 0;
+//  caEnd   = 1;
+//var
+//  sBezeichnung  : String;
+//  sDatentyp     : String;
+//  sWert         : String;
+//  aPosition     : array [cvBezeichnung..cvWert, caStart..caEnd] of integer;
+//begin
+//  //ShowMessage(sParameter);
+//  if (sParameter <> '') and (Length(sParameter) > 5) then begin
+//    DeleteComment(sParameter);
+//    //*** Die Start-/ & Stop-Positionen ermitteln
+//    // Die Bezeichnung - Vom Start bis zum ersten Leerzeichen
+//    aPosition[cvBezeichnung, caStart] := 0;
+//    aPosition[cvBezeichnung, caEnd]   := Pos(' ', sParameter, 1);
+//
+//    //Der Default-Wert - Vom Wort "Default" bis zum Ende (- Offset)
+//    aPosition[cvWert, caStart] := UpperCase(sParameter).IndexOf(DEFAULT_START, aPosition[cvBezeichnung, caEnd]);
+//    if (aPosition[cvWert, caStart] <> -1) then begin
+//      aPosition[cvWert, caStart] := aPosition[cvWert, caStart] + Length(DEFAULT_START);
+//      aPosition[cvWert, caEnd]   := sParameter.Length;
+//    end;
+//
+//    //Der Datentyp - Vom Ende der Bezeichnung bis zum Wort "Default" oder bis zum Ende
+//    aPosition[cvDatentyp, caStart] := aPosition[cvBezeichnung, caEnd] + 1;
+//    if (aPosition[cvWert, caStart] <> -1) then
+//      aPosition[cvDatentyp, caEnd] := aPosition[cvWert, caStart] - Length(DEFAULT_START) + 1
+//    else
+//      aPosition[cvDatentyp, caEnd] := sParameter.Length
+//    ;
+//    aPosition[cvDatentyp, caEnd] := aPosition[cvDatentyp, caEnd] - aPosition[cvDatentyp, caStart];
+//
+//    //*** Die Daten ermitteln
+//    sBezeichnung  := Trim(Copy(sParameter, aPosition[cvBezeichnung, caStart], aPosition[cvBezeichnung, caEnd]));
+//    sDatentyp     := Trim(Copy(sParameter, aPosition[cvDatentyp, caStart]   , aPosition[cvDatentyp, caEnd]));
+//    if (aPosition[cvWert, caStart] > 0) then begin
+//      sWert := Trim(Copy(sParameter, aPosition[cvWert, caStart], aPosition[cvWert, caEnd]));
+//      sWert := Trim(Copy(sWert, 0, sWert.Length - getOffset(sWert)));
+//    end;
+//
+//    //*** Zum Schluss noch alle Werte in die Grid-Zeile packen
+//    with grdVariables do begin
+//      RowCount := RowCount + 1;
+//      Cells[cvBezeichnung, RowCount -1] := sBezeichnung;
+//      Cells[cvDatentyp   , RowCount -1] := sDatentyp;
+//      Cells[cvWert       , RowCount -1] := sWert;
+//    end;
+//    Application.ProcessMessages;
+//  end;
+//end;
+
+function TfrmFunctionConverter.getOffset(sText: String; checkDatatype: boolean): integer;
+begin
+  // Überprüfen, ob der Text mit ',' endet oder ...
+  Result := 0;
+  if sText.EndsWith(',') then
+    Result := 1
+  ;
+
+  // mit ')' endet
+  if sText.EndsWith(')') then begin
+    Result := 1;
+    if (sText.Length > 1) then begin
+      if (checkDatatype and CharInSet(sText[sText.Length - 1], ['0'..'9'])) // Wird nach dem Datentypen geschaut, soll das Offset wieder entfernt werden, falls das vorletzte Zeichen nummerisch ist. Grund: VARCHAR(x)
+      or (not checkDatatype and CharInSet(sText[sText.Length - 1], ['(']))  // Wird nicht nach dem Datentypen geschaut (Default), soll das Offset wieder entfernt werden, falls das vorletzte Zeichen '(' ist. Grund: TODAY()
+      then
+        Result := 0
+      ;
     end;
   end;
 end;
 
-procedure TfrmFunctionConverter.FormShow(Sender: TObject);
+procedure TfrmFunctionConverter.grdParameterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  iNextRow : integer;
 begin
-  InitForm;
-  InitStyles;
-  { TODO -c  : Braucht man ChangingStyle ? }
-  if ChangingStyle then begin
-    ParameterToGrid;
-    ChangingStyle := False;
+  with grdParameter do begin
+    // Bei ENTER die nächste Zeile selektieren
+    if (Key = VK_RETURN) then begin
+      if RowCount > 1 then begin
+        if EditorMode then
+          EditorMode := False
+        ;
+        Application.ProcessMessages;
+
+        iNextRow := Row + 1;
+        if iNextRow >= RowCount then
+          iNextRow := 1
+        ;
+        Row := iNextRow;
+        Key := 0;
+      end;
+    end;
+
+    // Bei ENTFERNEN die Zelle leeren
+    if (Key = VK_DELETE) then begin
+      Cells[Col, Row] := '';
+    end;
+
+    // Bei F1 die Breite der Column auf den max. Wert setzen
+    if (Key = VK_F1) then begin
+      AdjustColumn(grdParameter.Col);
+    end;
   end;
 end;
 
-function TfrmFunctionConverter.getOffset(sText: String): integer;
+procedure TfrmFunctionConverter.grdParameterMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var
+  iCol : integer;
+  iRow : integer;
 begin
-  //*** Das Offset setzen - Kommas, Klammern etc. sollen weg (ganz simple gehalten)
-  Result := 0;
-  if (sText.LastIndexOf(',') = sText.Length -1)
-  or (sText.LastIndexOf(')') = sText.Length -1)
-  then
-    Result := 1
-  ;
+  // Inhalt als Hint anzeigen - Wichtig bei Kommentaren
+  with grdParameter do begin
+    MouseToCell(X, Y, iCol, iRow);
+    if (iCol <> -1) and (iRow <> -1) then
+      Hint := Cells[iCol, iRow]
+    ;
+
+    if (iLastCol <> iCol) or (iLastRow <> iRow) then begin
+      Application.CancelHint;
+      iLastCol := iCol;
+      iLastRow := iRow;
+    end;
+  end;
 end;
 
-procedure TfrmFunctionConverter.grdVariablesSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TfrmFunctionConverter.grdParameterSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
   if (aRow = 0) then
-    grdVariables.Options := grdVariables.Options - [goEditing]
+    grdParameter.Options := grdParameter.Options - [goEditing]
   else
-    grdVariables.Options := grdVariables.Options + [goEditing]
+    grdParameter.Options := grdParameter.Options + [goEditing]
   ;
 end;
 
@@ -309,9 +513,9 @@ begin
   //until (Pos(DECLARE, memInput.Text, iPosStart) < 0);
 
   iPosStart := Pos(DECLARE, memInput.Text, iPosStart);
-  showmessage(intToStr(iPosStart));
+//  showmessage(intToStr(iPosStart));
   iPosStart := Pos('DSD', memInput.Text, iPosStart);
-  showmessage(intToStr(iPosStart));
+//  showmessage(intToStr(iPosStart));
    { TODO : Repeat anpassen! Läuft nur einmal durch }
 
 
@@ -345,6 +549,15 @@ begin
 
 end;
 
+procedure TfrmFunctionConverter.HandleCommentColumnVisibility;
+begin
+  if mitShowComments.Checked then
+    grdParameter.ColWidths[cvKommentar] := MIN_COL_WIDTH
+  else
+    grdParameter.ColWidths[cvKommentar] := 0
+  ;
+end;
+
 procedure TfrmFunctionConverter.btnCopyClick(Sender: TObject);
 begin
   with Clipboard do begin
@@ -355,15 +568,19 @@ end;
 
 procedure TfrmFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
-  //*** Übernahme des Grid-Parameter in die Ausgabe
+showmessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
+
+  // Übernahme des Grid-Parameter in die Ausgabe
   GridParameterToOutput;
+  // Button "Kopieren" selektieren
+  btnCopy.SetFocus;
 end;
 
-procedure TfrmFunctionConverter.DeleteComment(var sParameter: String);
+procedure TfrmFunctionConverter.ExtractComment(var sParameter, sKommentar : String);
 var
   iPos : integer;
 begin
-  //*** Kommentare kicken
+  // Kommentare speichern und kicken
   iPos := sParameter.IndexOf('//');
   if (iPos = -1) then
     iPos := sParameter.IndexOf('/*')
@@ -372,13 +589,17 @@ begin
     iPos := sParameter.IndexOf('--')
   ;
 
-  if (iPos <> -1) then
-    sParameter := Trim(Copy(sParameter, 0, iPos - 1))
-  ;
+  if (iPos <> -1) then begin
+    // Kommentar rausholen und ...
+    sKommentar := Trim(Copy(sParameter, iPos, sParameter.Length));
+    // rauslöschen
+    sParameter := Trim(Copy(sParameter, 0, iPos - 1));
+  end;
 end;
 
 procedure TfrmFunctionConverter.ParameterToGrid;
 var
+  slParameter       : TStringlist;
   aParameter        : TArray<String>;
   sParameterHeader  : String;
   iPosStart, iPosEnd: integer;
@@ -394,65 +615,95 @@ begin
 
   if (iPosStart <> 0) and (iPosEnd <> 0) then begin
     sParameterHeader := copy(memInput.Text, iPosStart, iPosEnd);
-
-    with slParameter do begin
-      Clear;
-      Add(
-        Trim(
-          StringReplace(
+    slParameter := TStringList.Create;
+    try
+      slParameter.Delimiter := ',';
+      with slParameter do begin
+        Clear;
+        Add(
+          Trim(
             StringReplace(
-              sParameterHeader,
-              'IN ',
-              '',
+              StringReplace(
+                sParameterHeader,
+                'IN ',
+                '',
+                [rfReplaceAll]
+              ),
+              CR,
+              CRLF,
               [rfReplaceAll]
-            ),
-            CR,
-            CRLF,
-            [rfReplaceAll]
+            )
           )
-        )
-      );
-    end;
+        );
+      end;
 
-    //*** Die Parameter anhand des Carrige Returns & Linefeeds splitten & ins Grid packen
-    aParameter := slParameter.Text.Split([CRLF]);
-    for ii := 0 to Length(aParameter) - 1 do begin
-      WriteVariableRow(ii + 1, Trim(aParameter[ii]));
+      //*** Die Parameter anhand des Carrige Returns & Linefeeds splitten & ins Grid packen
+      aParameter := slParameter.Text.Split([CRLF]);
+      for ii := 0 to Length(aParameter) - 1 do begin
+        WriteVariableRow(Trim(aParameter[ii]));
+      end;
+      AdjustGrid;
+      GridParameterToOutput;
+    finally
+      slParameter.Free;
     end;
-
-    AdjustGrid;
-    GridParameterToOutput;
   end;
 end;
 
-procedure TfrmFunctionConverter.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TfrmFunctionConverter.SetSavefileName;
 var
-  IniFile: TIniFile;
+  iPosStart, iPosEnd: integer;
+  aFilename : String;
 begin
-  IniFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
-  try
-    IniFile.WriteString('Form', 'Style', TStyleManager.ActiveStyle.Name);
-     //Ini.WriteBool( 'Form', 'InitMax', WindowState = wsMaximized );
-  finally
-    IniFile.Free;
-    slParameter.Free;
+  frmFunctionConverter.Caption := PROGRAMM_NAME;
+  // Prüfen, ob es sich um eine Funktion oder Prozedur handelt und alles davor entfernen
+  iPosStart := UpperCase(memInput.Text).IndexOf(CREATE_FUNCTION);
+  if (iPosStart > -1) then
+    iPosStart := iPosStart + Length(CREATE_FUNCTION)
+  else
+    iPosStart := UpperCase(memInput.Text).IndexOf(CREATE_PROCEDURE) + Length(CREATE_PROCEDURE)
+  ;
+  aFilename := Trim(Copy(memInput.Text, iPosStart, 50));
+
+  // Nach der ersten offenen Klammer suchen und alles dazwischen als Filename speichern
+  iPosEnd   := UpperCase(aFilename).IndexOf('(');
+  aFilename := Trim(Copy(aFilename, 1, iPosEnd));
+
+  if Trim(aFilename) = '' then
+    aFilename := 'Output'
+  else
+    frmFunctionConverter.Caption := PROGRAMM_NAME + ' | ' + aFilename;
+  ;
+
+  dlgSave.FileName := aFilename;
+end;
+
+procedure TfrmFunctionConverter.FormShow(Sender: TObject);
+begin
+  InitForm;
+  InitStyles;
+  btnConvert.OnClick(self);
+end;
+
+procedure TfrmFunctionConverter.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  with ConfigFile do begin
+    WriteString ('Form', 'Style'            , TStyleManager.ActiveStyle.Name);
+    WriteInteger('Form', 'pnlInputWidth'    , pnlInput.Width);
+    WriteInteger('Form', 'pnlOutputWidth'   , pnlOutput.Width);
   end;
 end;
 
 procedure TfrmFunctionConverter.FormCreate(Sender: TObject);
-var
-  IniFile: TIniFile;
 begin
-  IniFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
-  try
-    //*** Style laden
-    TStyleManager.TrySetStyle(IniFile.ReadString('Form', 'Style', ''), False);
-     //Top     := Ini.ReadInteger( 'Form', 'Top', 100 );
-     //Left    := Ini.ReadInteger( 'Form', 'Left', 100 );
-     //Caption := Ini.ReadString( 'Form', 'Caption', 'New Form' );
-  finally
-    IniFile.Free;
-  end;
+  ConfigFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
+  // Style laden
+  TStyleManager.TrySetStyle(ConfigFile.ReadString('Form', 'Style', ''), False);
+end;
+
+procedure TfrmFunctionConverter.FormDestroy(Sender: TObject);
+begin
+  ConfigFile.Free;
 end;
 
 end.
