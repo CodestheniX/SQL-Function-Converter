@@ -24,6 +24,7 @@ uses
    Could
     - Kommentare speichern und dann anzeigen -> DONE
     - Doppelklick => Editor
+    - Buzzwords farblich kennzeichnen
 }
 
 type
@@ -349,7 +350,7 @@ begin
     iPosEnd   := sParameter.Length - getOffset(sParameter, true);
     sDatentyp := Trim(Copy(sParameter, iPosStart, iPosEnd));
 
-    //*** Zum Schluss noch alle Werte in die Grid-Zeile packen
+    // Zum Schluss noch alle Werte in die Grid-Zeile packen
     with grdParameter do begin
       RowCount := RowCount + 1;
       Cells[cvBezeichnung, RowCount -1] := sBezeichnung;
@@ -568,11 +569,9 @@ end;
 
 procedure TfrmFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
-showmessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
-
-  // Übernahme des Grid-Parameter in die Ausgabe
+ShowMessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
+  // Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
-  // Button "Kopieren" selektieren
   btnCopy.SetFocus;
 end;
 
@@ -606,7 +605,7 @@ var
   ii                : integer;
 begin
   InitGrid(False);
-  //*** Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
+  // Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
   iPosStart := Pos(PARAMETER_START, memInput.Text, 1);
   iPosEnd   := Pos(FUNCTION_END   , memInput.Text, 1) - iPosStart;
   if (iPosEnd <= 0) then
@@ -637,7 +636,7 @@ begin
         );
       end;
 
-      //*** Die Parameter anhand des Carrige Returns & Linefeeds splitten & ins Grid packen
+      // Die Parameter anhand des Carrige Returns & Linefeeds splitten & ins Grid packen
       aParameter := slParameter.Text.Split([CRLF]);
       for ii := 0 to Length(aParameter) - 1 do begin
         WriteVariableRow(Trim(aParameter[ii]));
