@@ -1,7 +1,7 @@
-object frmFunctionConverter: TfrmFunctionConverter
+object frmSQLFunctionConverter: TfrmSQLFunctionConverter
   Left = 0
   Top = 0
-  Caption = 'SQL-Function-Converter'
+  Caption = 'SQL Function Converter'
   ClientHeight = 640
   ClientWidth = 1268
   Color = clBtnFace
