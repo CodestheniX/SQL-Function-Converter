@@ -1,7 +1,7 @@
-object frmFunctionConverter: TfrmFunctionConverter
+object frmSQLFunctionConverter: TfrmSQLFunctionConverter
   Left = 0
   Top = 0
-  Caption = 'SQL-Function-Converter'
+  Caption = 'SQL Function Converter'
   ClientHeight = 640
   ClientWidth = 1268
   Color = clBtnFace
@@ -23,8 +23,6 @@ object frmFunctionConverter: TfrmFunctionConverter
     Height = 640
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 1264
-    ExplicitHeight = 639
     object splLeft: TSplitter
       Left = 451
       Top = 1
@@ -46,7 +44,6 @@ object frmFunctionConverter: TfrmFunctionConverter
       Height = 638
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 637
       object lblInput: TLabel
         Left = 1
         Top = 1
@@ -77,7 +74,6 @@ object frmFunctionConverter: TfrmFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 565
       end
       object pnlInputButton: TPanel
         Left = 1
@@ -86,7 +82,6 @@ object frmFunctionConverter: TfrmFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        ExplicitTop = 595
         object btnConvert: TButton
           Left = 1
           Top = 1
@@ -112,8 +107,6 @@ object frmFunctionConverter: TfrmFunctionConverter
       Height = 638
       Align = alClient
       TabOrder = 2
-      ExplicitWidth = 446
-      ExplicitHeight = 637
       object lblOutput: TLabel
         Left = 1
         Top = 1
@@ -144,8 +137,6 @@ object frmFunctionConverter: TfrmFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitWidth = 444
-        ExplicitHeight = 565
       end
       object pnlOutputButton: TPanel
         Left = 1
@@ -154,8 +145,6 @@ object frmFunctionConverter: TfrmFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        ExplicitTop = 595
-        ExplicitWidth = 444
         object btnCopy: TButton
           Left = 1
           Top = 1
@@ -171,7 +160,6 @@ object frmFunctionConverter: TfrmFunctionConverter
           ParentFont = False
           TabOrder = 0
           OnClick = btnCopyClick
-          ExplicitWidth = 442
         end
       end
     end
@@ -182,7 +170,6 @@ object frmFunctionConverter: TfrmFunctionConverter
       Height = 638
       Align = alLeft
       TabOrder = 1
-      ExplicitHeight = 637
       object lblParameter: TLabel
         Left = 1
         Top = 1
@@ -224,7 +211,6 @@ object frmFunctionConverter: TfrmFunctionConverter
         OnKeyDown = grdParameterKeyDown
         OnMouseMove = grdParameterMouseMove
         OnSelectCell = grdParameterSelectCell
-        ExplicitHeight = 565
       end
       object pnlParameterButton: TPanel
         Left = 1
@@ -233,7 +219,6 @@ object frmFunctionConverter: TfrmFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        ExplicitTop = 595
         object btnRefresh: TButton
           Left = 1
           Top = 1

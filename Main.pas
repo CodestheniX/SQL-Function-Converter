@@ -15,6 +15,7 @@ uses
       - DECLARE @... INTEGER;
       - SET @... = x;
       - RETURN >> SELECT
+      - IN @.. ; OUT @...
 
    Should
     - Error-Handling beim Konvert
@@ -24,10 +25,11 @@ uses
    Could
     - Kommentare speichern und dann anzeigen -> DONE
     - Doppelklick => Editor
+    - Buzzwords farblich kennzeichnen
 }
 
 type
-  TfrmFunctionConverter = class(TForm)
+  TfrmSQLFunctionConverter = class(TForm)
     pnlMain: TPanel;
     pnlInput: TPanel;
     pnlOutput: TPanel;
@@ -94,11 +96,11 @@ type
   end;
 
 var
-  frmFunctionConverter: TfrmFunctionConverter;
+  frmSQLFunctionConverter: TfrmSQLFunctionConverter;
 
 const
   //*** Form
-  PROGRAMM_NAME       = 'SQL-Function-Converter';
+  PROGRAMM_NAME       = 'SQL Function Converter';
   MIN_COL_WIDTH       = 110;
   PNL_INPUT_WIDTH     = 450;
   PNL_PARAMETER_WIDTH = 360;
@@ -132,7 +134,7 @@ implementation
 
 {$R *.dfm}
 
-function TfrmFunctionConverter.AdjustColumn(iCol : integer) : integer;
+function TfrmSQLFunctionConverter.AdjustColumn(iCol : integer) : integer;
 var
   iRow : integer;
   iMaxWidth  : integer;
@@ -153,7 +155,7 @@ begin
   Result := iMaxWidth;
 end;
 
-procedure TfrmFunctionConverter.AdjustGrid;
+procedure TfrmSQLFunctionConverter.AdjustGrid;
 var
   iCol        : integer;
   iMaxWidth   : integer;
@@ -182,7 +184,7 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.btnConvertClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.btnConvertClick(Sender: TObject);
 begin
   // Konvert der Parameter ins Grid
   ParameterToGrid;
@@ -200,7 +202,7 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.InitForm;
+procedure TfrmSQLFunctionConverter.InitForm;
 begin
   with ConfigFile do begin
     //Menü
@@ -216,7 +218,7 @@ begin
   InitGrid(True);
 end;
 
-procedure TfrmFunctionConverter.InitGrid(FillHeader : boolean);
+procedure TfrmSQLFunctionConverter.InitGrid(FillHeader : boolean);
 var
   iRow: integer;
 begin
@@ -240,7 +242,7 @@ begin
   HandleCommentColumnVisibility;
 end;
 
-procedure TfrmFunctionConverter.InitStyles;
+procedure TfrmSQLFunctionConverter.InitStyles;
 var
   sStyle    : String;
   slStyles  : TStringlist;
@@ -268,12 +270,12 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.mitAdjustColumnClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitAdjustColumnClick(Sender: TObject);
 begin
   AdjustColumn(grdParameter.Col);
 end;
 
-procedure TfrmFunctionConverter.mitLoadScriptClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitLoadScriptClick(Sender: TObject);
 begin
   if (dlgOpen.Execute) then begin
     memInput.Lines.LoadFromFile(dlgOpen.FileName, TEncoding.UTF8);
@@ -281,27 +283,27 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.mitSaveOutputClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitSaveOutputClick(Sender: TObject);
 begin
   if (dlgSave.Execute) then begin
     memOutput.Lines.SaveToFile(dlgSave.FileName, TEncoding.UTF8);
   end;
 end;
 
-procedure TfrmFunctionConverter.mitReturnToSelectClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitReturnToSelectClick(Sender: TObject);
 begin
   mitReturnToSelect.Checked := not mitReturnToSelect.Checked;
   ConfigFile.WriteBool('Output', 'ReturnToSelect', mitReturnToSelect.Checked);
 end;
 
-procedure TfrmFunctionConverter.mitShowCommentsClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitShowCommentsClick(Sender: TObject);
 begin
   mitShowComments.Checked := not mitShowComments.Checked;
   HandleCommentColumnVisibility;
   ConfigFile.WriteBool('Form', 'ShowComments', mitShowComments.Checked);
 end;
 
-procedure TfrmFunctionConverter.mitStyleClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitStyleClick(Sender: TObject);
 var
   ii     : integer;
   sStyle : String;
@@ -317,7 +319,7 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.WriteVariableRow(sParameter: String);
+procedure TfrmSQLFunctionConverter.WriteVariableRow(sParameter: String);
 var
   iPosStart     : integer;
   iPosEnd       : integer;
@@ -349,7 +351,7 @@ begin
     iPosEnd   := sParameter.Length - getOffset(sParameter, true);
     sDatentyp := Trim(Copy(sParameter, iPosStart, iPosEnd));
 
-    //*** Zum Schluss noch alle Werte in die Grid-Zeile packen
+    // Zum Schluss noch alle Werte in die Grid-Zeile packen
     with grdParameter do begin
       RowCount := RowCount + 1;
       Cells[cvBezeichnung, RowCount -1] := sBezeichnung;
@@ -415,7 +417,7 @@ end;
 //  end;
 //end;
 
-function TfrmFunctionConverter.getOffset(sText: String; checkDatatype: boolean): integer;
+function TfrmSQLFunctionConverter.getOffset(sText: String; checkDatatype: boolean): integer;
 begin
   // Überprüfen, ob der Text mit ',' endet oder ...
   Result := 0;
@@ -436,7 +438,7 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.grdParameterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TfrmSQLFunctionConverter.grdParameterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   iNextRow : integer;
 begin
@@ -470,7 +472,7 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.grdParameterMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+procedure TfrmSQLFunctionConverter.grdParameterMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
   iCol : integer;
   iRow : integer;
@@ -490,7 +492,7 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.grdParameterSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TfrmSQLFunctionConverter.grdParameterSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
   if (aRow = 0) then
     grdParameter.Options := grdParameter.Options - [goEditing]
@@ -499,7 +501,7 @@ begin
   ;
 end;
 
-procedure TfrmFunctionConverter.GridParameterToOutput;
+procedure TfrmSQLFunctionConverter.GridParameterToOutput;
 var
   iPosStart       : integer;
   iPosLastDeclare : integer;  // Position des letzten "DELCARE"
@@ -549,7 +551,7 @@ begin
 
 end;
 
-procedure TfrmFunctionConverter.HandleCommentColumnVisibility;
+procedure TfrmSQLFunctionConverter.HandleCommentColumnVisibility;
 begin
   if mitShowComments.Checked then
     grdParameter.ColWidths[cvKommentar] := MIN_COL_WIDTH
@@ -558,7 +560,7 @@ begin
   ;
 end;
 
-procedure TfrmFunctionConverter.btnCopyClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.btnCopyClick(Sender: TObject);
 begin
   with Clipboard do begin
     Clear;
@@ -566,17 +568,15 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.btnRefreshClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
-showmessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
-
-  // Übernahme des Grid-Parameter in die Ausgabe
+ShowMessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
+  // Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
-  // Button "Kopieren" selektieren
   btnCopy.SetFocus;
 end;
 
-procedure TfrmFunctionConverter.ExtractComment(var sParameter, sKommentar : String);
+procedure TfrmSQLFunctionConverter.ExtractComment(var sParameter, sKommentar : String);
 var
   iPos : integer;
 begin
@@ -597,7 +597,7 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.ParameterToGrid;
+procedure TfrmSQLFunctionConverter.ParameterToGrid;
 var
   slParameter       : TStringlist;
   aParameter        : TArray<String>;
@@ -606,7 +606,7 @@ var
   ii                : integer;
 begin
   InitGrid(False);
-  //*** Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
+  // Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
   iPosStart := Pos(PARAMETER_START, memInput.Text, 1);
   iPosEnd   := Pos(FUNCTION_END   , memInput.Text, 1) - iPosStart;
   if (iPosEnd <= 0) then
@@ -637,7 +637,7 @@ begin
         );
       end;
 
-      //*** Die Parameter anhand des Carrige Returns & Linefeeds splitten & ins Grid packen
+      // Die Parameter anhand des Carrige Returns & Linefeeds splitten & ins Grid packen
       aParameter := slParameter.Text.Split([CRLF]);
       for ii := 0 to Length(aParameter) - 1 do begin
         WriteVariableRow(Trim(aParameter[ii]));
@@ -650,12 +650,12 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.SetSavefileName;
+procedure TfrmSQLFunctionConverter.SetSavefileName;
 var
   iPosStart, iPosEnd: integer;
   aFilename : String;
 begin
-  frmFunctionConverter.Caption := PROGRAMM_NAME;
+  frmSQLFunctionConverter.Caption := PROGRAMM_NAME;
   // Prüfen, ob es sich um eine Funktion oder Prozedur handelt und alles davor entfernen
   iPosStart := UpperCase(memInput.Text).IndexOf(CREATE_FUNCTION);
   if (iPosStart > -1) then
@@ -672,20 +672,20 @@ begin
   if Trim(aFilename) = '' then
     aFilename := 'Output'
   else
-    frmFunctionConverter.Caption := PROGRAMM_NAME + ' | ' + aFilename;
+    frmSQLFunctionConverter.Caption := PROGRAMM_NAME + ' | ' + aFilename;
   ;
 
   dlgSave.FileName := aFilename;
 end;
 
-procedure TfrmFunctionConverter.FormShow(Sender: TObject);
+procedure TfrmSQLFunctionConverter.FormShow(Sender: TObject);
 begin
   InitForm;
   InitStyles;
   btnConvert.OnClick(self);
 end;
 
-procedure TfrmFunctionConverter.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TfrmSQLFunctionConverter.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   with ConfigFile do begin
     WriteString ('Form', 'Style'            , TStyleManager.ActiveStyle.Name);
@@ -694,14 +694,14 @@ begin
   end;
 end;
 
-procedure TfrmFunctionConverter.FormCreate(Sender: TObject);
+procedure TfrmSQLFunctionConverter.FormCreate(Sender: TObject);
 begin
   ConfigFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
   // Style laden
   TStyleManager.TrySetStyle(ConfigFile.ReadString('Form', 'Style', ''), False);
 end;
 
-procedure TfrmFunctionConverter.FormDestroy(Sender: TObject);
+procedure TfrmSQLFunctionConverter.FormDestroy(Sender: TObject);
 begin
   ConfigFile.Free;
 end;

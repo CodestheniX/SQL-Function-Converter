@@ -2,7 +2,7 @@ program SQLFunctionConverter;
 
 uses
   Vcl.Forms,
-  Main in 'Main.pas' {frmFunctionConverter},
+  Main in 'Main.pas' {frmSQLFunctionConverter},
   Vcl.Themes,
   Vcl.Styles;
 
@@ -11,7 +11,7 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  TStyleManager.TrySetStyle('Windows10');
-  Application.CreateForm(TfrmFunctionConverter, frmFunctionConverter);
+  TStyleManager.TrySetStyle('Amakrits');
+  Application.CreateForm(TfrmSQLFunctionConverter, frmSQLFunctionConverter);
   Application.Run;
 end.
