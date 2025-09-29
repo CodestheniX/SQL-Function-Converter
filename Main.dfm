@@ -160,6 +160,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
           ParentFont = False
           TabOrder = 0
           OnClick = btnCopyClick
+          ExplicitLeft = -39
         end
       end
     end
@@ -239,8 +240,8 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     end
   end
   object menMain: TMainMenu
-    Left = 28
-    Top = 286
+    Left = 20
+    Top = 33
     object mitDatei: TMenuItem
       Caption = 'Datei'
       object mitLoadScript: TMenuItem
@@ -252,6 +253,19 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Caption = 'Ausgabe speichern'
         ShortCut = 16467
         OnClick = mitSaveOutputClick
+      end
+    end
+    object mitBearbeiten: TMenuItem
+      Caption = 'Bearbeiten'
+      object mitConvert: TMenuItem
+        Caption = 'Eingabe konvertieren'
+        ShortCut = 120
+        OnClick = btnConvertClick
+      end
+      object mitRefresh: TMenuItem
+        Caption = 'Ausgabe aktualisieren'
+        ShortCut = 116
+        OnClick = btnRefreshClick
       end
     end
     object mitOptionen: TMenuItem
@@ -288,16 +302,16 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     Encodings.Strings = (
       'UTF-8')
     ShowEncodingList = False
-    Left = 134
-    Top = 286
+    Left = 126
+    Top = 33
   end
-  object dlgOpen: TOpenTextFileDialog
+  object dlgOpen: TOpenDialog
     Filter = 
       'SQL-Dateien (*.sql)|*.sql|Text-Dateien (*.txt)|*.txt|Alle Dateie' +
       'n (*.*)|*.*'
-    Encodings.Strings = (
-      'UTF-8')
-    Left = 83
-    Top = 286
+    Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
+    Title = 'SQL-Datei ausw'#228'hlen'
+    Left = 75
+    Top = 33
   end
 end
