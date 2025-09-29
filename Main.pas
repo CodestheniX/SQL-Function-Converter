@@ -19,6 +19,7 @@ uses
 
    Should
     - Error-Handling beim Konvert
+    - Shortcuts für die Buttons
     - Enter im Grid: Zeile runter -> DONE
     - Nach Konvert -> 3. Column markieren -> DONE
 
@@ -60,7 +61,7 @@ type
     mitReturnToSelect: TMenuItem;
     N2: TMenuItem;
     dlgSave: TSaveTextFileDialog;
-    dlgOpen: TOpenTextFileDialog;
+    dlgOpen: TOpenDialog;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -278,8 +279,20 @@ end;
 procedure TfrmSQLFunctionConverter.mitLoadScriptClick(Sender: TObject);
 begin
   if (dlgOpen.Execute) then begin
-    memInput.Lines.LoadFromFile(dlgOpen.FileName, TEncoding.UTF8);
-    btnConvert.OnClick(self);
+    try
+      try
+        //Versuch die Datei als UTF-8 zu laden
+        memInput.Lines.LoadFromFile(dlgOpen.FileName, TEncoding.UTF8);
+      except
+        //Wenn das nicht klappt - Im Default (ANSI) laden
+        memInput.Lines.LoadFromFile(dlgOpen.FileName);
+      end;
+      btnConvert.OnClick(self);
+    except
+      on E: Exception do begin
+        MessageDlg('Fehler beim Laden der Datei!', TMsgDlgType.mtError, [mbOK], 0);
+      end;
+    end;
   end;
 end;
 
