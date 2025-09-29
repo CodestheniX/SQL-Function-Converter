@@ -19,7 +19,8 @@ uses
 
    Should
     - Error-Handling beim Konvert
-    - Shortcuts für die Buttons -> DONE
+    - Shortcuts fï¿½r die Buttons -> DONE
+    - Shortcuts fï¿½r die Buttons
     - Enter im Grid: Zeile runter -> DONE
     - Nach Konvert -> 3. Column markieren -> DONE
 
@@ -110,11 +111,11 @@ const
   PNL_PARAMETER_WIDTH = 360;
   PNL_OUTPUT_WIDTH    = 450;
 
-  //*** Konstanten für den Dateinamen
+  //*** Konstanten fï¿½r den Dateinamen
   CREATE_FUNCTION     = 'CREATE FUNCTION ';
   CREATE_PROCEDURE    = 'CREATE PROCEDURE ';
 
-  //*** Konstanten für die Parameter (Kopf)
+  //*** Konstanten fï¿½r die Parameter (Kopf)
   //PARAMETER_START     = 'IN @';
   PARAMETER_START     = '@';
   PARAMETER_END       = ')';
@@ -170,7 +171,7 @@ begin
     if RowCount > 1 then
       FixedRows := 1
     ;
-    // Anpassung der Spaltenbreiten an die Länge des Inhalts - Nur bis Wert
+    // Anpassung der Spaltenbreiten an die Lï¿½nge des Inhalts - Nur bis Wert
     iPanelWidth := 0;
     for iCol := 0 to cvWert do begin
       iMaxWidth   := AdjustColumn(iCol);
@@ -193,7 +194,7 @@ begin
   // Konvert der Parameter ins Grid
   ParameterToGrid;
 
-  // Möglichen Dateinamen ermitteln
+  // Mï¿½glichen Dateinamen ermitteln
   SetSavefileName;
 
   // Die Spalte "Wert" in der ersten Zeile selektieren
@@ -209,7 +210,7 @@ end;
 procedure TfrmSQLFunctionConverter.InitForm;
 begin
   with ConfigFile do begin
-    //Menü
+    //Menï¿½
     mitShowComments.Checked   := ReadBool('Form'  , 'ShowComments'  , true);
     mitReturnToSelect.Checked := ReadBool('Output', 'ReturnToSelect', true);
 
@@ -435,7 +436,7 @@ end;
 
 function TfrmSQLFunctionConverter.getOffset(sText: String; checkDatatype: boolean): integer;
 begin
-  // Überprüfen, ob der Text mit ',' endet oder ...
+  // ï¿½berprï¿½fen, ob der Text mit ',' endet oder ...
   Result := 0;
   if sText.EndsWith(',') then
     Result := 1
@@ -459,7 +460,7 @@ var
   iNextRow : integer;
 begin
   with grdParameter do begin
-    // Bei ENTER die nächste Zeile selektieren
+    // Bei ENTER die nï¿½chste Zeile selektieren
     if (Key = VK_RETURN) then begin
       if RowCount > 1 then begin
         if EditorMode then
@@ -524,7 +525,7 @@ var
 //  iPosDeclareSubStr : integer;  // Position des letzten "DELCARE" im restlichen Sub-String
 begin
   //*** Ermitteln vom letzten "DECLARE" (LastDelimiter will nicht...)
-  { TODO : Werden iPosStart & End benötigt? }
+  { TODO : Werden iPosStart & End benï¿½tigt? }
   iPosStart := Pos(PROCEDURE_START, memInput.Text);
   //repeat
   //  iPosStart := Pos(DECLARE, memInput.Text, iPosStart) + Length(DECLARE);
@@ -534,7 +535,7 @@ begin
 //  showmessage(intToStr(iPosStart));
   iPosStart := Pos('DSD', memInput.Text, iPosStart);
 //  showmessage(intToStr(iPosStart));
-   { TODO : Repeat anpassen! Läuft nur einmal durch }
+   { TODO : Repeat anpassen! Lï¿½uft nur einmal durch }
 
 
 
@@ -587,7 +588,7 @@ end;
 procedure TfrmSQLFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
 ShowMessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
-  // Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
+  // ï¿½bernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
   btnCopy.SetFocus;
 end;
@@ -608,7 +609,7 @@ begin
   if (iPos <> -1) then begin
     // Kommentar rausholen und ...
     sKommentar := Trim(Copy(sParameter, iPos, sParameter.Length));
-    // rauslöschen
+    // rauslï¿½schen
     sParameter := Trim(Copy(sParameter, 0, iPos - 1));
   end;
 end;
@@ -672,7 +673,7 @@ var
   aFilename : String;
 begin
   frmSQLFunctionConverter.Caption := PROGRAMM_NAME;
-  // Prüfen, ob es sich um eine Funktion oder Prozedur handelt und alles davor entfernen
+  // Prï¿½fen, ob es sich um eine Funktion oder Prozedur handelt und alles davor entfernen
   iPosStart := UpperCase(memInput.Text).IndexOf(CREATE_FUNCTION);
   if (iPosStart > -1) then
     iPosStart := iPosStart + Length(CREATE_FUNCTION)
