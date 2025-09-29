@@ -160,6 +160,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
           ParentFont = False
           TabOrder = 0
           OnClick = btnCopyClick
+          ExplicitLeft = -39
         end
       end
     end
@@ -252,6 +253,19 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Caption = 'Ausgabe speichern'
         ShortCut = 16467
         OnClick = mitSaveOutputClick
+      end
+    end
+    object mitBearbeiten: TMenuItem
+      Caption = 'Bearbeiten'
+      object mitConvert: TMenuItem
+        Caption = 'Eingabe konvertieren'
+        ShortCut = 120
+        OnClick = btnConvertClick
+      end
+      object mitRefresh: TMenuItem
+        Caption = 'Ausgabe aktualisieren'
+        ShortCut = 116
+        OnClick = btnRefreshClick
       end
     end
     object mitOptionen: TMenuItem

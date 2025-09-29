@@ -15,11 +15,11 @@ uses
       - DECLARE @... INTEGER;
       - SET @... = x;
       - RETURN >> SELECT
-      - IN @.. ; OUT @...
+    - IN @.. ; OUT @...
 
    Should
     - Error-Handling beim Konvert
-    - Shortcuts für die Buttons
+    - Shortcuts für die Buttons -> DONE
     - Enter im Grid: Zeile runter -> DONE
     - Nach Konvert -> 3. Column markieren -> DONE
 
@@ -62,6 +62,9 @@ type
     N2: TMenuItem;
     dlgSave: TSaveTextFileDialog;
     dlgOpen: TOpenDialog;
+    mitBearbeiten: TMenuItem;
+    mitConvert: TMenuItem;
+    mitRefresh: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
