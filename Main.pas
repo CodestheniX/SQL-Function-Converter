@@ -1,4 +1,4 @@
-unit Main;
+﻿unit Main;
 
 interface
 
@@ -15,7 +15,8 @@ uses
       - DECLARE @... INTEGER;
       - SET @... = x;
       - RETURN >> SELECT
-    - IN @.. ; OUT @...
+    - IN @.. ; OUT @... -> DONE
+                           (Wird aber aktuell wie ein Input-Parameter behandelt)
 
    Should
     - Error-Handling beim Konvert
@@ -641,8 +642,13 @@ begin
           Trim(
             StringReplace(
               StringReplace(
-                sParameterHeader,
-                'IN ',
+                StringReplace(
+                  sParameterHeader,
+                  'IN ',
+                  '',
+                  [rfReplaceAll]
+                ),
+                'OUT ',
                 '',
                 [rfReplaceAll]
               ),

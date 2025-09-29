@@ -160,7 +160,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
           ParentFont = False
           TabOrder = 0
           OnClick = btnCopyClick
-          ExplicitLeft = -39
         end
       end
     end
