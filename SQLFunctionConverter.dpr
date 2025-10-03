@@ -4,7 +4,8 @@ uses
   Vcl.Forms,
   Main in 'Main.pas' {frmSQLFunctionConverter},
   Vcl.Themes,
-  Vcl.Styles;
+  Vcl.Styles,
+  ConverterConst in 'ConverterConst.pas';
 
 {$R *.res}
 
