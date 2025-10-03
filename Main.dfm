@@ -256,6 +256,14 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     end
     object mitBearbeiten: TMenuItem
       Caption = 'Bearbeiten'
+      object mitAdjustColumn: TMenuItem
+        Caption = 'Spaltenbreite anpassen'
+        ShortCut = 112
+        OnClick = mitAdjustColumnClick
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
       object mitConvert: TMenuItem
         Caption = 'Eingabe konvertieren'
         ShortCut = 120
@@ -269,14 +277,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     end
     object mitOptionen: TMenuItem
       Caption = 'Optionen'
-      object mitAdjustColumn: TMenuItem
-        Caption = 'Spaltenbreite anpassen'
-        ShortCut = 112
-        OnClick = mitAdjustColumnClick
-      end
-      object N1: TMenuItem
-        Caption = '-'
-      end
       object mitReturnToSelect: TMenuItem
         Caption = 'Funktion | Return in SELECT umwandeln '
         Checked = True
@@ -292,6 +292,13 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       end
       object mitStyles: TMenuItem
         Caption = 'Styles'
+      end
+      object N3: TMenuItem
+        Caption = '-'
+      end
+      object btnClearConfig: TMenuItem
+        Caption = 'Konfiguration zur'#252'cksetzen'
+        OnClick = btnClearConfigClick
       end
     end
   end
