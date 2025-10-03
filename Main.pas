@@ -174,6 +174,10 @@ begin
     mitShowComments.Checked   := ReadBool(INI_SEC_FORM  , INI_KEY_SHOWCOMMENTS  , true);
     mitReturnToSelect.Checked := ReadBool(INI_SEC_OUTPUT, INI_KEY_RETURNTOSELECT, true);
 
+    //Form
+    frmSQLFunctionConverter.Width  := ReadInteger(INI_SEC_FORM, INI_KEY_WIDTH , FRM_WIDTH);
+    frmSQLFunctionConverter.Height := ReadInteger(INI_SEC_FORM, INI_KEY_HEIGHT, FRM_HEIGHT);
+
     //Panels
     pnlInput.Width     := ReadInteger(INI_SEC_FORM, INI_KEY_PNLINPUTWIDTH    , PNL_INPUT_WIDTH);
     pnlParameter.Width := ReadInteger(INI_SEC_FORM, INI_KEY_PNLPARAMETERWIDTH, PNL_PARAMETER_WIDTH);
@@ -621,6 +625,8 @@ procedure TfrmSQLFunctionConverter.FormClose(Sender: TObject; var Action: TClose
 begin
   with ConfigFile do begin
     WriteString (INI_SEC_FORM, INI_KEY_STYLE            , TStyleManager.ActiveStyle.Name);
+    WriteInteger(INI_SEC_FORM, INI_KEY_WIDTH            , frmSQLFunctionConverter.Width);
+    WriteInteger(INI_SEC_FORM, INI_KEY_HEIGHT           , frmSQLFunctionConverter.Height);
     WriteInteger(INI_SEC_FORM, INI_KEY_PNLINPUTWIDTH    , pnlInput.Width);
     WriteInteger(INI_SEC_FORM, INI_KEY_PNLPARAMETERWIDTH, pnlParameter.Width);
     WriteInteger(INI_SEC_FORM, INI_KEY_PNLOUTPUTWIDTH   , pnlOutput.Width);

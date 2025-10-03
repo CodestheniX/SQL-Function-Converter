@@ -40,15 +40,19 @@ const
   //*** Form
   PROGRAMM_NAME       = 'SQL Function Converter';
   DEFAULT_STYLE       = 'Amakrits';
-  MIN_COL_WIDTH       = 110;
+  FRM_HEIGHT          = 700;
+  FRM_WIDTH           = 1284;
   PNL_INPUT_WIDTH     = 450;
   PNL_PARAMETER_WIDTH = 360;
   PNL_OUTPUT_WIDTH    = 450;
+  MIN_COL_WIDTH       = 110;
 
   //*** Sections & Keys der Konfiguratipn (Ini-Datei)
   //Section: Form
   INI_SEC_FORM              = 'Form';
   INI_KEY_STYLE             = 'Style';
+  INI_KEY_HEIGHT            = 'Height';
+  INI_KEY_WIDTH             = 'Width';
   INI_KEY_SHOWCOMMENTS      = 'ShowComments';
   INI_KEY_PNLINPUTWIDTH     = 'pnlInputWidth';
   INI_KEY_PNLPARAMETERWIDTH = 'pnlParameterWidth';

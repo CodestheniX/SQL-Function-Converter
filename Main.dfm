@@ -2,7 +2,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
   Left = 0
   Top = 0
   Caption = 'SQL Function Converter'
-  ClientHeight = 640
+  ClientHeight = 641
   ClientWidth = 1268
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,30 +20,34 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     Left = 0
     Top = 0
     Width = 1268
-    Height = 640
+    Height = 641
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 640
     object splLeft: TSplitter
       Left = 451
       Top = 1
-      Height = 638
+      Height = 639
       ExplicitLeft = 444
       ExplicitTop = -2
+      ExplicitHeight = 638
     end
     object splRight: TSplitter
       Left = 814
       Top = 1
-      Height = 638
+      Height = 639
       ExplicitLeft = 811
       ExplicitTop = 2
+      ExplicitHeight = 638
     end
     object pnlInput: TPanel
       Left = 1
       Top = 1
       Width = 450
-      Height = 638
+      Height = 639
       Align = alLeft
       TabOrder = 0
+      ExplicitHeight = 638
       object lblInput: TLabel
         Left = 1
         Top = 1
@@ -64,7 +68,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Left = 1
         Top = 30
         Width = 448
-        Height = 566
+        Height = 567
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -74,14 +78,16 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitHeight = 566
       end
       object pnlInputButton: TPanel
         Left = 1
-        Top = 596
+        Top = 597
         Width = 448
         Height = 41
         Align = alBottom
         TabOrder = 1
+        ExplicitTop = 596
         object btnConvert: TButton
           Left = 1
           Top = 1
@@ -104,9 +110,10 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       Left = 817
       Top = 1
       Width = 450
-      Height = 638
+      Height = 639
       Align = alClient
       TabOrder = 2
+      ExplicitHeight = 638
       object lblOutput: TLabel
         Left = 1
         Top = 1
@@ -127,7 +134,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Left = 1
         Top = 30
         Width = 448
-        Height = 566
+        Height = 567
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -137,14 +144,16 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitHeight = 566
       end
       object pnlOutputButton: TPanel
         Left = 1
-        Top = 596
+        Top = 597
         Width = 448
         Height = 41
         Align = alBottom
         TabOrder = 1
+        ExplicitTop = 596
         object btnCopy: TButton
           Left = 1
           Top = 1
@@ -167,9 +176,10 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       Left = 454
       Top = 1
       Width = 360
-      Height = 638
+      Height = 639
       Align = alLeft
       TabOrder = 1
+      ExplicitHeight = 638
       object lblParameter: TLabel
         Left = 1
         Top = 1
@@ -190,7 +200,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Left = 1
         Top = 30
         Width = 358
-        Height = 566
+        Height = 567
         Align = alClient
         ColCount = 4
         DefaultColWidth = 110
@@ -211,14 +221,16 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         OnKeyDown = grdParameterKeyDown
         OnMouseMove = grdParameterMouseMove
         OnSelectCell = grdParameterSelectCell
+        ExplicitHeight = 566
       end
       object pnlParameterButton: TPanel
         Left = 1
-        Top = 596
+        Top = 597
         Width = 358
         Height = 41
         Align = alBottom
         TabOrder = 1
+        ExplicitTop = 596
         object btnRefresh: TButton
           Left = 1
           Top = 1
