@@ -62,6 +62,7 @@ type
     procedure mitReturnToSelectClick(Sender: TObject);
     procedure mitSaveOutputClick(Sender: TObject);
     procedure btnClearConfigClick(Sender: TObject);
+    procedure grdParameterDblClick(Sender: TObject);
   private
     ConfigFile: TIniFile;
     iLastRow  : integer;
@@ -371,6 +372,21 @@ begin
   end;
 end;
 
+procedure TfrmSQLFunctionConverter.grdParameterDblClick(Sender: TObject);
+var
+  currentPoint: TPoint;
+  iCol, iRow: Integer;
+begin
+  //Geklickte Zelle ermitteln
+  currentPoint := grdParameter.ScreenToClient(Mouse.CursorPos);
+  grdParameter.MouseToCell(currentPoint.X, currentPoint.Y, iCol, iRow);
+
+  //Spaltengröße anpassen, falls Klick in Überschriftszeile
+  if iRow = 0 then
+    AdjustColumn(iCol);
+end;
+
+
 procedure TfrmSQLFunctionConverter.grdParameterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   iNextRow : integer;
@@ -646,6 +662,8 @@ begin
 end;
 
 end.
+
+
 
 //-----------------------------------------------------------------------------
 // ALTE Prozedur - Mit Arrays

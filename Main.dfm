@@ -23,7 +23,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     Height = 641
     Align = alClient
     TabOrder = 0
-    ExplicitHeight = 640
     object splLeft: TSplitter
       Left = 451
       Top = 1
@@ -47,7 +46,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       Height = 639
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 638
       object lblInput: TLabel
         Left = 1
         Top = 1
@@ -78,7 +76,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 566
       end
       object pnlInputButton: TPanel
         Left = 1
@@ -87,7 +84,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        ExplicitTop = 596
         object btnConvert: TButton
           Left = 1
           Top = 1
@@ -113,7 +109,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       Height = 639
       Align = alClient
       TabOrder = 2
-      ExplicitHeight = 638
       object lblOutput: TLabel
         Left = 1
         Top = 1
@@ -144,7 +139,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 566
       end
       object pnlOutputButton: TPanel
         Left = 1
@@ -153,7 +147,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        ExplicitTop = 596
         object btnCopy: TButton
           Left = 1
           Top = 1
@@ -179,7 +172,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       Height = 639
       Align = alLeft
       TabOrder = 1
-      ExplicitHeight = 638
       object lblParameter: TLabel
         Left = 1
         Top = 1
@@ -218,10 +210,10 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
+        OnDblClick = grdParameterDblClick
         OnKeyDown = grdParameterKeyDown
         OnMouseMove = grdParameterMouseMove
         OnSelectCell = grdParameterSelectCell
-        ExplicitHeight = 566
       end
       object pnlParameterButton: TPanel
         Left = 1
@@ -230,7 +222,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        ExplicitTop = 596
         object btnRefresh: TButton
           Left = 1
           Top = 1
