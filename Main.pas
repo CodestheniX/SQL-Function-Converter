@@ -381,7 +381,7 @@ begin
   currentPoint := grdParameter.ScreenToClient(Mouse.CursorPos);
   grdParameter.MouseToCell(currentPoint.X, currentPoint.Y, iCol, iRow);
 
-  //Spaltengröße anpassen, falls Klick in Überschriftszeile
+  //Spaltenbreite anpassen, falls Klick in Überschriftszeile
   if iRow = 0 then
     AdjustColumn(iCol);
 end;
@@ -519,7 +519,6 @@ end;
 
 procedure TfrmSQLFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
-ShowMessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
   //Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
   btnCopy.SetFocus;
@@ -557,13 +556,13 @@ begin
   InitGrid(False);
   //Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
   iPosStart := Pos(PARAMETER_START, memInput.Text, 1);
-  iPosEnd   := Pos(FUNCTION_END   , memInput.Text, 1) - iPosStart;
+  iPosEnd   := Pos(FUNCTION_END   , UpperCase(memInput.Text), 1) - iPosStart;
   if (iPosEnd <= 0) then
-    iPosEnd := Pos(PROCEDURE_START, memInput.Text, 1) - iPosStart
+    iPosEnd := Pos(PROCEDURE_START, UpperCase(memInput.Text), 1) - iPosStart
   ;
 
   if (iPosStart <> 0) and (iPosEnd <> 0) then begin
-    sParameterHeader := copy(memInput.Text, iPosStart, iPosEnd);
+    sParameterHeader := Copy(memInput.Text, iPosStart, iPosEnd);
     slParameter := TStringList.Create;
     try
       slParameter.Delimiter := ',';
@@ -577,11 +576,11 @@ begin
                   sParameterHeader,
                   'IN ',
                   '',
-                  [rfReplaceAll]
+                  [rfReplaceAll, rfIgnoreCase]
                 ),
                 'OUT ',
                 '',
-                [rfReplaceAll]
+                [rfReplaceAll, rfIgnoreCase]
               ),
               CR,
               CRLF,
