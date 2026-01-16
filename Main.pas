@@ -69,6 +69,7 @@ type
     iLastCol  : integer;
     function AdjustColumn(iCol : integer) : integer;
     function getOffset(sText: String; checkDatatype: boolean) : integer;
+    function GetLineWithoutComment(sLine: String) : String;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
@@ -254,6 +255,7 @@ var
   slSets         : TStringlist;
   ii             : integer;
   iPosLastDeclare: integer;
+  sCurrentLine   : String;
   sName          : String;
   sDatatype      : String;
   sValue         : String;
@@ -262,13 +264,21 @@ begin
   slSets     := TStringList.Create;
   try
     //Ermittlung vom letzten "DECLARE"
+    //Wichtig: Funktioniert sicherlich nicht in allen Varianten einwandfrei!
+    ii := 0;
     iPosLastDeclare := 0;
-    for ii := 0 to slStatement.Count - 1 do begin
-      if Trim(slStatement[ii]).StartsWith(DECLARE, True) then
-        iPosLastDeclare := ii
-      ;
+    while ii < slStatement.Count do begin
+      sCurrentLine := GetLineWithoutComment(Trim(slStatement[ii]));
+      if sCurrentLine.StartsWith(DECLARE, True) then begin
+        //Mehrere Zeilen prüfen wegen Local Temp. Tables
+        while (ii < slStatement.Count) and not sCurrentLine.EndsWith(';') do begin
+          Inc(ii);
+          sCurrentLine := GetLineWithoutComment(Trim(slStatement[ii]));
+        end;
+        iPosLastDeclare := ii;
+      end;
+      Inc(ii);
     end;
-    { TODO : Hier auch auf die temp tables achten!! }
 
     //DECLAREs & SETs für die Parameter aus dem Grid erzeugen
     with grdParameter do begin
@@ -525,7 +535,7 @@ begin
   try
     //Alles vor dem BEGIN kicken
     slStatement.Text := memInput.Text;
-    iPosStart  := Pos(PROCEDURE_START, UpperCase(slStatement.Text));
+    iPosStart := Pos(PROCEDURE_START, UpperCase(slStatement.Text));
     slStatement.Text := Trim(Copy(slStatement.Text, iPosStart, Length(slStatement.Text)));
 
     //DECLARE & SET-Blöcke erstellen
@@ -563,7 +573,7 @@ end;
 
 procedure TfrmSQLFunctionConverter.ExtractComment(var sParameter, sComment : String);
 var
-  iPos : integer;
+  iPos: integer;
 begin
   //Kommentare speichern und kicken
   iPos := sParameter.IndexOf('//');
@@ -580,6 +590,27 @@ begin
     //rauslöschen
     sParameter := Trim(Copy(sParameter, 0, iPos - 1));
   end;
+end;
+
+function TfrmSQLFunctionConverter.GetLineWithoutComment(sLine: String) : String;
+var
+  iPos: integer;
+begin
+  //Kommentar suchen und...
+  iPos := sLine.IndexOf('//');
+  if (iPos = -1) then
+    iPos := sLine.IndexOf('/*')
+  ;
+  if (iPos = -1) then
+    iPos := sLine.IndexOf('--')
+  ;
+
+  //aus dem Text/der Zeile entfernen
+  if (iPos <> -1) then
+    sLine := Trim(Copy(sLine, 1, iPos))
+  ;
+
+  Result := sLine;
 end;
 
 procedure TfrmSQLFunctionConverter.ParameterToGrid;

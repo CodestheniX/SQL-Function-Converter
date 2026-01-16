@@ -3,8 +3,6 @@
 { TODO -c:
   Must
     - GridParameterToOutput -> Hier weiter
-      - DECLARE @... INTEGER;
-      - SET @... = x;
       - RETURN >> SELECT
 
    Should
