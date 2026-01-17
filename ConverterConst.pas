@@ -4,6 +4,7 @@
   Must
     - GridParameterToOutput -> Hier weiter
       - RETURN >> SELECT
+      - OUT-Parameter
 
    Should
     - Input-Parameter im Grid anders kennzeichnen

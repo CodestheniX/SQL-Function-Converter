@@ -81,6 +81,7 @@ type
     procedure HandleCommentColumnVisibility;
     procedure SetSavefileName;
     procedure InsertParameterToStatement(var slStatement: TStringlist);
+    procedure CreateOutputSection(var slStatement: TStringlist);
   end;
 
 var
@@ -541,6 +542,9 @@ begin
     //DECLARE & SET-Blöcke erstellen
     InsertParameterToStatement(slStatement);
 
+    //RETURN & OUT-Parameter in SELECT umwandeln
+    CreateOutputSection(slStatement);
+
     memOutput.Lines.Assign(slStatement);
   finally
     slStatement.Free;
@@ -569,6 +573,22 @@ begin
   //Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
   btnCopy.SetFocus;
+end;
+
+procedure TfrmSQLFunctionConverter.CreateOutputSection(var slStatement: TStringlist);
+var
+  ii   : integer;
+  sLine: String;
+begin
+  for ii := 0 to slStatement.Count - 1 do begin
+    sLine := slStatement[ii];
+
+    if Trim(sLine).StartsWith('RETURN', True) then begin
+      //Kommentar kicken & RETURN durch SELECT ersetzen
+      sLine := StringReplace(GetLineWithoutComment(sLine), 'RETURN', 'SELECT', [rfReplaceAll, rfIgnoreCase]);
+      slStatement[ii] := sLine;
+    end;
+  end;
 end;
 
 procedure TfrmSQLFunctionConverter.ExtractComment(var sParameter, sComment : String);
