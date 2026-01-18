@@ -3,17 +3,15 @@
 { TODO -c:
   Must
     - GridParameterToOutput -> Hier weiter
-      - DECLARE @... INTEGER;
-      - SET @... = x;
       - RETURN >> SELECT
+      - OUT-Parameter
 
    Should
+    - Input-Parameter im Grid anders kennzeichnen
     - Error-Handling beim Konvert
 
    Could
     - Doppelklick => Editor
-    - Buzzwords farblich kennzeichnen
-      => Lassen wir weg - Die Memo kann keinen Richtext und TSynEdit ist nicht Style-aware...
 }
 
 
@@ -32,6 +30,8 @@
 
    Could
     - Kommentare speichern und dann anzeigen
+    - Buzzwords farblich kennzeichnen
+      => Lassen wir weg - Die Memo kann keinen Richtext und TSynEdit ist nicht Style-aware...
 }
 
 interface

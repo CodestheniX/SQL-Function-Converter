@@ -62,22 +62,26 @@ type
     procedure mitReturnToSelectClick(Sender: TObject);
     procedure mitSaveOutputClick(Sender: TObject);
     procedure btnClearConfigClick(Sender: TObject);
+    procedure grdParameterDblClick(Sender: TObject);
   private
     ConfigFile: TIniFile;
     iLastRow  : integer;
     iLastCol  : integer;
     function AdjustColumn(iCol : integer) : integer;
     function getOffset(sText: String; checkDatatype: boolean) : integer;
+    function GetLineWithoutComment(sLine: String) : String;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
     procedure ParameterToGrid;
     procedure GridParameterToOutput;
-    procedure ExtractComment(var sParameter, sKommentar : String);
+    procedure ExtractComment(var sParameter, sComment: String);
     procedure WriteVariableRow(sParameter: String);
     procedure AdjustGrid;
     procedure HandleCommentColumnVisibility;
     procedure SetSavefileName;
+    procedure InsertParameterToStatement(var slStatement: TStringlist);
+    procedure CreateOutputSection(var slStatement: TStringlist);
   end;
 
 var
@@ -246,6 +250,80 @@ begin
   end;
 end;
 
+procedure TfrmSQLFunctionConverter.InsertParameterToStatement(var slStatement: TStringlist);
+var
+  slDeclares     : TStringlist;
+  slSets         : TStringlist;
+  ii             : integer;
+  iPosLastDeclare: integer;
+  sCurrentLine   : String;
+  sName          : String;
+  sDatatype      : String;
+  sValue         : String;
+begin
+  slDeclares := TStringList.Create;
+  slSets     := TStringList.Create;
+  try
+    //Ermittlung vom letzten "DECLARE"
+    //Wichtig: Funktioniert sicherlich nicht in allen Varianten einwandfrei!
+    ii := 0;
+    iPosLastDeclare := 0;
+    while ii < slStatement.Count do begin
+      sCurrentLine := GetLineWithoutComment(Trim(slStatement[ii]));
+      if sCurrentLine.StartsWith(DECLARE, True) then begin
+        //Mehrere Zeilen prüfen wegen Local Temp. Tables
+        while (ii < slStatement.Count) and not sCurrentLine.EndsWith(';') do begin
+          Inc(ii);
+          sCurrentLine := GetLineWithoutComment(Trim(slStatement[ii]));
+        end;
+        iPosLastDeclare := ii;
+      end;
+      Inc(ii);
+    end;
+
+    //DECLAREs & SETs für die Parameter aus dem Grid erzeugen
+    with grdParameter do begin
+      for ii := 1 to RowCount - 1 do begin
+        sName     := Trim(Cells[COL_NAME, ii]);
+        sDatatype := Trim(Cells[COL_DATATYPE, ii]);
+        sValue    := Trim(Cells[COL_VALUE, ii]);
+
+        slDeclares.Add(Format('  DECLARE %s %s;', [sName, sDatatype]));
+        if sValue <> '' then
+          slSets.Add(Format('  SET %s = %s;', [sName, sValue]))
+        ;
+      end;
+    end;
+
+    //Falls DECLAREs vorhanden -> Block einfügen
+    with slDeclares do begin
+      if Count > 0 then begin
+        Insert(0, CRLF + '  --Start: DECLARE der Parameter');
+        Add('  --Ende: DECLARE der Parameter' + CRLF);
+        for ii := 0 to Count - 1 do begin
+          slStatement.Insert(iPosLastDeclare + 1 + ii, slDeclares[ii]);
+        end;
+      end;
+    end;
+
+    //Falls SETs vorhanden -> Block einfügen
+    with slSets do begin
+      if Count > 0 then begin
+        iPosLastDeclare := iPosLastDeclare + slDeclares.Count;
+        Insert(0, '  --Start: SET der Parameter');
+        Add('  --Ende: SET der Parameter' + CRLF);
+        for ii := 0 to Count - 1 do begin
+          slStatement.Insert(iPosLastDeclare + 1 + ii, slSets[ii]);
+        end;
+      end;
+    end;
+
+  finally
+    slDeclares.Free;
+    slSets.Free;
+  end;
+end;
+
 procedure TfrmSQLFunctionConverter.mitAdjustColumnClick(Sender: TObject);
 begin
   AdjustColumn(grdParameter.Col);
@@ -371,6 +449,21 @@ begin
   end;
 end;
 
+procedure TfrmSQLFunctionConverter.grdParameterDblClick(Sender: TObject);
+var
+  currentPoint: TPoint;
+  iCol, iRow: Integer;
+begin
+  //Geklickte Zelle ermitteln
+  currentPoint := grdParameter.ScreenToClient(Mouse.CursorPos);
+  grdParameter.MouseToCell(currentPoint.X, currentPoint.Y, iCol, iRow);
+
+  //Spaltenbreite anpassen, falls Klick in Überschriftszeile
+  if iRow = 0 then
+    AdjustColumn(iCol);
+end;
+
+
 procedure TfrmSQLFunctionConverter.grdParameterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   iNextRow : integer;
@@ -436,52 +529,28 @@ end;
 
 procedure TfrmSQLFunctionConverter.GridParameterToOutput;
 var
-  iPosStart       : integer;
-  iPosLastDeclare : integer;  // Position des letzten "DELCARE"
-//  iPosDeclareSubStr : integer;  // Position des letzten "DELCARE" im restlichen Sub-String
+  slStatement : TStringList;
+  iPosStart   : integer;
 begin
-  //*** Ermitteln vom letzten "DECLARE" (LastDelimiter will nicht...)
-  { TODO : Werden iPosStart & End ben�tigt? }
-  iPosStart := Pos(PROCEDURE_START, memInput.Text);
-  //repeat
-  //  iPosStart := Pos(DECLARE, memInput.Text, iPosStart) + Length(DECLARE);
-  //until (Pos(DECLARE, memInput.Text, iPosStart) < 0);
+  slStatement := TStringList.Create;
+  try
+    //Alles vor dem BEGIN kicken
+    slStatement.Text := memInput.Text;
+    iPosStart := Pos(PROCEDURE_START, UpperCase(slStatement.Text));
+    slStatement.Text := Trim(Copy(slStatement.Text, iPosStart, Length(slStatement.Text)));
 
-  iPosStart := Pos(DECLARE, memInput.Text, iPosStart);
-//  showmessage(intToStr(iPosStart));
-  iPosStart := Pos('DSD', memInput.Text, iPosStart);
-//  showmessage(intToStr(iPosStart));
-   { TODO : Repeat anpassen! L�uft nur einmal durch }
+    //DECLARE & SET-Blöcke erstellen
+    InsertParameterToStatement(slStatement);
 
+    //RETURN & OUT-Parameter in SELECT umwandeln
+    if mitReturnToSelect.Checked then
+      CreateOutputSection(slStatement)
+    ;
 
-
-//  iPosStart         := Pos(PROCEDURE_START, memInput.Text, 1);
-//  iPosEnd           := Length(memInput.Text);
-//  iPosLastDeclare   := iPosStart;
-//  iPosDeclareSubStr := Pos(DECLARE, memInput.Text);
-//  while (iPosDeclareSubStr > 0) do begin
-//    iPosLastDeclare   := iPosDeclareSubStr;
-//    iPosDeclareSubStr := Pos(DECLARE, memInput.Text, iPosDeclareSubStr);
-//    if (iPosDeclareSubStr) > 0 then
-//      iPosDeclareSubStr := iPosDeclareSubStr + Length(DECLARE)
-//    ;
-//  end;
-
-{ TODO : Nicht fertig - Nach ; suchen }
-  //if (iPosLastDeclare > 0) then begin
-   // iPosLastDeclare := Pos(';', memInput.Text, iPosDeclareSubStr);
-  //end;
-
-  //showmessage(intToStr(iPosLastDeclare));
-
-
-  { TODO -c  : Hier weiter }
-  {
-    Ausgabe: BEGIN ... END;
-    nach dem letzten DECLARE suchen und nach dem ';' oder \n die eigenen platzieren
-
-  }
-
+    memOutput.Lines.Assign(slStatement);
+  finally
+    slStatement.Free;
+  end;
 end;
 
 procedure TfrmSQLFunctionConverter.HandleCommentColumnVisibility;
@@ -503,15 +572,30 @@ end;
 
 procedure TfrmSQLFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
-ShowMessage(inttostr(pnlInput.width) + ' - ' + inttostr(pnlParameter.Width) + ' - ' + inttostr(pnlOutput.Width));
   //Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
   btnCopy.SetFocus;
 end;
 
-procedure TfrmSQLFunctionConverter.ExtractComment(var sParameter, sKommentar : String);
+procedure TfrmSQLFunctionConverter.CreateOutputSection(var slStatement: TStringlist);
 var
-  iPos : integer;
+  ii   : integer;
+  sLine: String;
+begin
+  for ii := 0 to slStatement.Count - 1 do begin
+    sLine := slStatement[ii];
+
+    if Trim(sLine).StartsWith('RETURN', True) then begin
+      //Kommentar kicken & RETURN durch SELECT ersetzen
+      sLine := StringReplace(GetLineWithoutComment(sLine), 'RETURN', 'SELECT', [rfReplaceAll, rfIgnoreCase]);
+      slStatement[ii] := sLine;
+    end;
+  end;
+end;
+
+procedure TfrmSQLFunctionConverter.ExtractComment(var sParameter, sComment : String);
+var
+  iPos: integer;
 begin
   //Kommentare speichern und kicken
   iPos := sParameter.IndexOf('//');
@@ -524,10 +608,31 @@ begin
 
   if (iPos <> -1) then begin
     //Kommentar rausholen und ...
-    sKommentar := Trim(Copy(sParameter, iPos, sParameter.Length));
+    sComment := Trim(Copy(sParameter, iPos, sParameter.Length));
     //rauslöschen
     sParameter := Trim(Copy(sParameter, 0, iPos - 1));
   end;
+end;
+
+function TfrmSQLFunctionConverter.GetLineWithoutComment(sLine: String) : String;
+var
+  iPos: integer;
+begin
+  //Kommentar suchen und...
+  iPos := sLine.IndexOf('//');
+  if (iPos = -1) then
+    iPos := sLine.IndexOf('/*')
+  ;
+  if (iPos = -1) then
+    iPos := sLine.IndexOf('--')
+  ;
+
+  //aus dem Text/der Zeile entfernen
+  if (iPos <> -1) then
+    sLine := Trim(Copy(sLine, 1, iPos))
+  ;
+
+  Result := sLine;
 end;
 
 procedure TfrmSQLFunctionConverter.ParameterToGrid;
@@ -541,13 +646,13 @@ begin
   InitGrid(False);
   //Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
   iPosStart := Pos(PARAMETER_START, memInput.Text, 1);
-  iPosEnd   := Pos(FUNCTION_END   , memInput.Text, 1) - iPosStart;
+  iPosEnd   := Pos(FUNCTION_END   , UpperCase(memInput.Text), 1) - iPosStart;
   if (iPosEnd <= 0) then
-    iPosEnd := Pos(PROCEDURE_START, memInput.Text, 1) - iPosStart
+    iPosEnd := Pos(PROCEDURE_START, UpperCase(memInput.Text), 1) - iPosStart
   ;
 
   if (iPosStart <> 0) and (iPosEnd <> 0) then begin
-    sParameterHeader := copy(memInput.Text, iPosStart, iPosEnd);
+    sParameterHeader := Copy(memInput.Text, iPosStart, iPosEnd);
     slParameter := TStringList.Create;
     try
       slParameter.Delimiter := ',';
@@ -561,11 +666,11 @@ begin
                   sParameterHeader,
                   'IN ',
                   '',
-                  [rfReplaceAll]
+                  [rfReplaceAll, rfIgnoreCase]
                 ),
                 'OUT ',
                 '',
-                [rfReplaceAll]
+                [rfReplaceAll, rfIgnoreCase]
               ),
               CR,
               CRLF,
@@ -646,6 +751,8 @@ begin
 end;
 
 end.
+
+
 
 //-----------------------------------------------------------------------------
 // ALTE Prozedur - Mit Arrays
