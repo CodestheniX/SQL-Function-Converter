@@ -543,7 +543,9 @@ begin
     InsertParameterToStatement(slStatement);
 
     //RETURN & OUT-Parameter in SELECT umwandeln
-    CreateOutputSection(slStatement);
+    if mitReturnToSelect.Checked then
+      CreateOutputSection(slStatement)
+    ;
 
     memOutput.Lines.Assign(slStatement);
   finally

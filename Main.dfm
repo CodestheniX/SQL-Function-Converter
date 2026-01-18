@@ -281,7 +281,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     object mitOptionen: TMenuItem
       Caption = 'Optionen'
       object mitReturnToSelect: TMenuItem
-        Caption = 'Funktion | Return in SELECT umwandeln '
+        Caption = 'RETURN && OUT-Parameter in SELECT umwandeln '
         Checked = True
         OnClick = mitReturnToSelectClick
       end
