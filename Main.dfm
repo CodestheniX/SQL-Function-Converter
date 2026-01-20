@@ -194,7 +194,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Width = 358
         Height = 567
         Align = alClient
-        ColCount = 4
         DefaultColWidth = 110
         FixedColor = clAppWorkSpace
         FixedCols = 0

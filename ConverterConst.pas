@@ -3,7 +3,6 @@
 { TODO -c:
   Must
     - GridParameterToOutput -> Hier weiter
-      - RETURN >> SELECT
       - OUT-Parameter
 
    Should
@@ -38,14 +37,15 @@ interface
 
 const
   //*** Form
-  PROGRAMM_NAME       = 'SQL Function Converter';
-  DEFAULT_STYLE       = 'Amakrits';
-  FRM_HEIGHT          = 700;
-  FRM_WIDTH           = 1284;
-  PNL_INPUT_WIDTH     = 450;
-  PNL_PARAMETER_WIDTH = 360;
-  PNL_OUTPUT_WIDTH    = 450;
-  MIN_COL_WIDTH       = 110;
+  PROGRAMM_NAME           = 'SQL Function Converter';
+  DEFAULT_STYLE           = 'Amakrits';
+  FRM_HEIGHT              = 700;
+  FRM_WIDTH               = 1284;
+  PNL_INPUT_WIDTH         = 450;
+  PNL_PARAMETER_WIDTH     = 360;
+  PNL_OUTPUT_WIDTH        = 450;
+  MIN_COL_WIDTH           = 110;
+  MIN_COL_WIDTH_DIRECTION =  40;
 
   //*** Sections & Keys der Konfiguratipn (Ini-Datei)
   //Section: Form
@@ -76,10 +76,11 @@ const
   DECLARE             = 'DECLARE';
 
   //*** Grid "Variablen"
-  COL_NAME     = 0;
-  COL_DATATYPE = 1;
-  COL_VALUE    = 2;
-  COL_COMMENT  = 3;
+  COL_DIRECTION = 0;
+  COL_NAME      = 1;
+  COL_DATATYPE  = 2;
+  COL_VALUE     = 3;
+  COL_COMMENT   = 4;
 
   //*** Sonstiges
   CR    = #13;

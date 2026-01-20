@@ -98,7 +98,11 @@ var
   iTextWidth : integer;
 begin
   with grdParameter do begin
-    iMaxWidth :=  MIN_COL_WIDTH;
+    if iCol <> COL_DIRECTION then
+      iMaxWidth := MIN_COL_WIDTH
+    else
+      iMaxWidth := MIN_COL_WIDTH_DIRECTION
+    ;
     if RowCount > 0 then begin
       for iRow := 1 to RowCount -1 do begin
         iTextWidth := Canvas.TextWidth(Cells[iCol, iRow]) + GridLineWidth + 10;
@@ -163,7 +167,7 @@ begin
 
   //Die Spalte "Wert" in der ersten Zeile selektieren
   with grdParameter do begin
-    Col := 2;
+    Col := COL_VALUE;
     if RowCount > 1 then
       Row := 1
     ;
@@ -207,10 +211,11 @@ begin
     if FillHeader then begin
       RowCount  := 2;
       FixedRows := 1;
-      Cells[COL_NAME    , 0] := 'Bezeichnung';
-      Cells[COL_DATATYPE, 0] := 'Datentyp';
-      Cells[COL_VALUE   , 0] := 'Wert';
-      Cells[COL_COMMENT , 0] := 'Kommentar';
+      Cells[COL_DIRECTION, 0] := 'Art';
+      Cells[COL_NAME     , 0] := 'Bezeichnung';
+      Cells[COL_DATATYPE , 0] := 'Datentyp';
+      Cells[COL_VALUE    , 0] := 'Wert';
+      Cells[COL_COMMENT  , 0] := 'Kommentar';
     end
     else begin
       for iRow := 1 to RowCount do begin
@@ -393,12 +398,24 @@ var
   sDatatype : String;
   sValue    : String;
   sComment  : String;
+  sDirection: String;
 begin
   ExtractComment(sParameter, sComment);
   if (sParameter <> '') and (Length(sParameter) > 5) then begin
-    //Die Bezeichnung - Vom Start bis zum ersten Leerzeichen
+    //Die "Richtung"/Art des Parameters (IN / OUT) - Vom Anfang bis zum ersten Leerzeichen
     iPosStart := 0;
-    iPosEnd   := Pos(' ', sParameter, 1);
+    iPosEnd := Pos(PARAMETER_START, sParameter, 1);
+    //Nichts gefunden? Dann ist es standardmäßig ein "IN"
+    if iPosEnd <> 1 then
+      sDirection := Trim(Copy(sParameter, iPosStart, iPosEnd - 1))
+    else
+      sDirection := 'IN'
+    ;
+    sParameter := Trim(Copy(sParameter, iPosEnd, sParameter.Length));
+
+    //Die Bezeichnung - Vom @ bis zum ersten Leerzeichen
+    iPosStart := sParameter.IndexOf(PARAMETER_START);
+    iPosEnd   := Pos(' ', sParameter, iPosStart + 1);
     sName := Trim(Copy(sParameter, iPosStart, iPosEnd));
     sParameter := Trim(Copy(sParameter, iPosEnd, sParameter.Length));
 
@@ -419,10 +436,11 @@ begin
     //Zum Schluss noch alle Werte in die Grid-Zeile packen
     with grdParameter do begin
       RowCount := RowCount + 1;
-      Cells[COL_NAME    , RowCount -1] := sName;
-      Cells[COL_DATATYPE, RowCount -1] := sDatatype;
-      Cells[COL_VALUE   , RowCount -1] := sValue;
-      Cells[COL_COMMENT , RowCount -1] := sComment;
+      Cells[COL_DIRECTION, RowCount -1] := sDirection;
+      Cells[COL_NAME     , RowCount -1] := sName;
+      Cells[COL_DATATYPE , RowCount -1] := sDatatype;
+      Cells[COL_VALUE    , RowCount -1] := sValue;
+      Cells[COL_COMMENT  , RowCount -1] := sComment;
     end;
     Application.ProcessMessages;
   end;
@@ -645,14 +663,18 @@ var
 begin
   InitGrid(False);
   //Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
+  //Unschön, aber wir machen´s so - Zuerst nach dem ersten @ suchen und dann von der Stelle rückwärts nach der ersten "(" suchen wg. IN/OUT
   iPosStart := Pos(PARAMETER_START, memInput.Text, 1);
-  iPosEnd   := Pos(FUNCTION_END   , UpperCase(memInput.Text), 1) - iPosStart;
+  while (iPosStart > 0) and (memInput.Text[iPosStart] <> '(') do begin
+    Dec(iPosStart);
+  end;
+  iPosEnd := Pos(FUNCTION_END, UpperCase(memInput.Text), 1) - iPosStart;
   if (iPosEnd <= 0) then
     iPosEnd := Pos(PROCEDURE_START, UpperCase(memInput.Text), 1) - iPosStart
   ;
 
   if (iPosStart <> 0) and (iPosEnd <> 0) then begin
-    sParameterHeader := Copy(memInput.Text, iPosStart, iPosEnd);
+    sParameterHeader := Copy(memInput.Text, iPosStart + 1, iPosEnd);
     slParameter := TStringList.Create;
     try
       slParameter.Delimiter := ',';
@@ -661,17 +683,7 @@ begin
         Add(
           Trim(
             StringReplace(
-              StringReplace(
-                StringReplace(
-                  sParameterHeader,
-                  'IN ',
-                  '',
-                  [rfReplaceAll, rfIgnoreCase]
-                ),
-                'OUT ',
-                '',
-                [rfReplaceAll, rfIgnoreCase]
-              ),
+              sParameterHeader,
               CR,
               CRLF,
               [rfReplaceAll]
