@@ -2,11 +2,9 @@
 
 { TODO -c:
   Must
-    - GridParameterToOutput -> Hier weiter
-      - OUT-Parameter
+    -
 
    Should
-    - Input-Parameter im Grid anders kennzeichnen
     - Error-Handling beim Konvert
 
    Could
@@ -20,6 +18,8 @@
     - Zeilen ohne Daten (Nur Kommentare)
     - IN @.. ; OUT @...
       (Wird aber aktuell wie ein Input-Parameter behandelt)
+    - GridParameterToOutput -> Hier weiter
+      - OUT-Parameter => Mit dem Handling weiter machen!!
 
    Should
     - Shortcuts für die Buttons

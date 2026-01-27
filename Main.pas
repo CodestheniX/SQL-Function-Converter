@@ -70,6 +70,7 @@ type
     function AdjustColumn(iCol : integer) : integer;
     function getOffset(sText: String; checkDatatype: boolean) : integer;
     function GetLineWithoutComment(sLine: String) : String;
+    function GetOutParameterList: TStringlist;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
@@ -595,19 +596,68 @@ begin
   btnCopy.SetFocus;
 end;
 
-procedure TfrmSQLFunctionConverter.CreateOutputSection(var slStatement: TStringlist);
+function TfrmSQLFunctionConverter.GetOutParameterList: TStringlist;
 var
   ii   : integer;
-  sLine: String;
+  sName: String;
 begin
+  Result := TStringList.Create;
+  Result.Delimiter := ',';
+  Result.StrictDelimiter := True;
+  //Grid durchlaufen und die OUT-Parameter holen
+  with grdParameter do begin
+    for ii := 1 to RowCount - 1 do begin
+      if (UpperCase(Trim(Cells[COL_DIRECTION, ii])) = 'OUT') then begin
+        sName := Trim(Cells[COL_NAME, ii]);
+        if (sName <> '') then
+          Result.Add(sName)
+        ;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmSQLFunctionConverter.CreateOutputSection(var slStatement: TStringlist);
+var
+  ii: integer;
+  iPosEnd: integer;
+  returnFound: boolean;
+  sLine: String;
+  sOutParameter: String;
+begin
+  //OUT-Parameter zusammensetzen
+  sOutParameter := GetOutParameterList.DelimitedText;
+  if sOutParameter <> '' then
+    sOutParameter := StringReplace(sOutParameter, ',', ', ', [rfReplaceAll]) + ';' + CRLF
+  ;
+  returnFound := False;
+  iPosEnd := 1;
   for ii := 0 to slStatement.Count - 1 do begin
     sLine := slStatement[ii];
-
     if Trim(sLine).StartsWith('RETURN', True) then begin
+      returnFound := True;
       //Kommentar kicken & RETURN durch SELECT ersetzen
       sLine := StringReplace(GetLineWithoutComment(sLine), 'RETURN', 'SELECT', [rfReplaceAll, rfIgnoreCase]);
+
+      //Falls es noch OUT-Parameter gibt, dann diese anhängen
+      if (sOutParameter <> '') then
+        sLine := sLine.TrimRight([';']) + ', ' + sOutParameter
+      ;
       slStatement[ii] := sLine;
     end;
+
+    //Direkt die Position des letzten END speichern, falls man sie unten benötigt
+    if Trim(sLine).StartsWith('END', True) then
+      iPosEnd := ii;
+    ;
+  end;
+
+  //Wurde kein RETURN gefunden, wird bei vorhandenen OUT-Parametern das SELECT vor dem letzten END eingefügt
+  if (not returnFound) and (sOutParameter <> '') then begin
+    //Nicht die beste Lösung, aber nur hinzufügen, wenn es tatsächlich eins der letzten ENDs ist
+    if (iPosEnd > slStatement.Count - 3) then
+      slStatement.Insert(iPosEnd, 'SELECT ' + sOutParameter)
+    ;
   end;
 end;
 
