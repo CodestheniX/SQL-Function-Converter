@@ -403,7 +403,7 @@ var
 begin
   ExtractComment(sParameter, sComment);
   if (sParameter <> '') and (Length(sParameter) > 5) then begin
-    //Die "Richtung"/Art des Parameters (IN / OUT) - Vom Anfang bis zum ersten Leerzeichen
+    //Die "Richtung"/Art des Parameters (IN / INOUT / OUT) - Vom Anfang bis zum ersten Leerzeichen
     iPosStart := 0;
     iPosEnd := Pos(PARAMETER_START, sParameter, 1);
     //Nichts gefunden? Dann ist es standardmäßig ein "IN"
@@ -415,9 +415,9 @@ begin
     sParameter := Trim(Copy(sParameter, iPosEnd, sParameter.Length));
 
     //Die Bezeichnung - Vom @ bis zum ersten Leerzeichen
-    iPosStart := sParameter.IndexOf(PARAMETER_START);
-    iPosEnd   := Pos(' ', sParameter, iPosStart + 1);
-    sName := Trim(Copy(sParameter, iPosStart, iPosEnd));
+    iPosStart  := sParameter.IndexOf(PARAMETER_START);
+    iPosEnd    := Pos(' ', sParameter, iPosStart + 1);
+    sName      := Trim(Copy(sParameter, iPosStart, iPosEnd));
     sParameter := Trim(Copy(sParameter, iPosEnd, sParameter.Length));
 
     //Der Default-Wert - Vom Wort "DEFAULT" bis zum Ende (- Offset)
@@ -561,7 +561,7 @@ begin
     //DECLARE & SET-Blöcke erstellen
     InsertParameterToStatement(slStatement);
 
-    //RETURN & OUT-Parameter in SELECT umwandeln
+    //RETURN / INOUT/OUT-Parameter in SELECT umwandeln
     if mitReturnToSelect.Checked then
       CreateOutputSection(slStatement)
     ;
@@ -607,7 +607,9 @@ begin
   //Grid durchlaufen und die OUT-Parameter holen
   with grdParameter do begin
     for ii := 1 to RowCount - 1 do begin
-      if (UpperCase(Trim(Cells[COL_DIRECTION, ii])) = 'OUT') then begin
+      if (UpperCase(Trim(Cells[COL_DIRECTION, ii])) = 'OUT')
+      or (UpperCase(Trim(Cells[COL_DIRECTION, ii])) = 'INOUT')
+      then begin
         sName := Trim(Cells[COL_NAME, ii]);
         if (sName <> '') then
           Result.Add(sName)
