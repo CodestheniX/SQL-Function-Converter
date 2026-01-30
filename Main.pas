@@ -70,6 +70,7 @@ type
     function AdjustColumn(iCol : integer) : integer;
     function getOffset(sText: String; checkDatatype: boolean) : integer;
     function GetLineWithoutComment(sLine: String) : String;
+    function GetOutParameterList: TStringlist;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
@@ -98,7 +99,11 @@ var
   iTextWidth : integer;
 begin
   with grdParameter do begin
-    iMaxWidth :=  MIN_COL_WIDTH;
+    if iCol <> COL_DIRECTION then
+      iMaxWidth := MIN_COL_WIDTH
+    else
+      iMaxWidth := MIN_COL_WIDTH_DIRECTION
+    ;
     if RowCount > 0 then begin
       for iRow := 1 to RowCount -1 do begin
         iTextWidth := Canvas.TextWidth(Cells[iCol, iRow]) + GridLineWidth + 10;
@@ -163,7 +168,7 @@ begin
 
   //Die Spalte "Wert" in der ersten Zeile selektieren
   with grdParameter do begin
-    Col := 2;
+    Col := COL_VALUE;
     if RowCount > 1 then
       Row := 1
     ;
@@ -207,10 +212,11 @@ begin
     if FillHeader then begin
       RowCount  := 2;
       FixedRows := 1;
-      Cells[COL_NAME    , 0] := 'Bezeichnung';
-      Cells[COL_DATATYPE, 0] := 'Datentyp';
-      Cells[COL_VALUE   , 0] := 'Wert';
-      Cells[COL_COMMENT , 0] := 'Kommentar';
+      Cells[COL_DIRECTION, 0] := 'Art';
+      Cells[COL_NAME     , 0] := 'Bezeichnung';
+      Cells[COL_DATATYPE , 0] := 'Datentyp';
+      Cells[COL_VALUE    , 0] := 'Wert';
+      Cells[COL_COMMENT  , 0] := 'Kommentar';
     end
     else begin
       for iRow := 1 to RowCount do begin
@@ -393,13 +399,25 @@ var
   sDatatype : String;
   sValue    : String;
   sComment  : String;
+  sDirection: String;
 begin
   ExtractComment(sParameter, sComment);
   if (sParameter <> '') and (Length(sParameter) > 5) then begin
-    //Die Bezeichnung - Vom Start bis zum ersten Leerzeichen
+    //Die "Richtung"/Art des Parameters (IN / INOUT / OUT) - Vom Anfang bis zum ersten Leerzeichen
     iPosStart := 0;
-    iPosEnd   := Pos(' ', sParameter, 1);
-    sName := Trim(Copy(sParameter, iPosStart, iPosEnd));
+    iPosEnd := Pos(PARAMETER_START, sParameter, 1);
+    //Nichts gefunden? Dann ist es standardmäßig ein "IN"
+    if iPosEnd <> 1 then
+      sDirection := Trim(Copy(sParameter, iPosStart, iPosEnd - 1))
+    else
+      sDirection := 'IN'
+    ;
+    sParameter := Trim(Copy(sParameter, iPosEnd, sParameter.Length));
+
+    //Die Bezeichnung - Vom @ bis zum ersten Leerzeichen
+    iPosStart  := sParameter.IndexOf(PARAMETER_START);
+    iPosEnd    := Pos(' ', sParameter, iPosStart + 1);
+    sName      := Trim(Copy(sParameter, iPosStart, iPosEnd));
     sParameter := Trim(Copy(sParameter, iPosEnd, sParameter.Length));
 
     //Der Default-Wert - Vom Wort "DEFAULT" bis zum Ende (- Offset)
@@ -419,10 +437,11 @@ begin
     //Zum Schluss noch alle Werte in die Grid-Zeile packen
     with grdParameter do begin
       RowCount := RowCount + 1;
-      Cells[COL_NAME    , RowCount -1] := sName;
-      Cells[COL_DATATYPE, RowCount -1] := sDatatype;
-      Cells[COL_VALUE   , RowCount -1] := sValue;
-      Cells[COL_COMMENT , RowCount -1] := sComment;
+      Cells[COL_DIRECTION, RowCount -1] := sDirection;
+      Cells[COL_NAME     , RowCount -1] := sName;
+      Cells[COL_DATATYPE , RowCount -1] := sDatatype;
+      Cells[COL_VALUE    , RowCount -1] := sValue;
+      Cells[COL_COMMENT  , RowCount -1] := sComment;
     end;
     Application.ProcessMessages;
   end;
@@ -542,7 +561,7 @@ begin
     //DECLARE & SET-Blöcke erstellen
     InsertParameterToStatement(slStatement);
 
-    //RETURN & OUT-Parameter in SELECT umwandeln
+    //RETURN / INOUT/OUT-Parameter in SELECT umwandeln
     if mitReturnToSelect.Checked then
       CreateOutputSection(slStatement)
     ;
@@ -566,7 +585,7 @@ procedure TfrmSQLFunctionConverter.btnCopyClick(Sender: TObject);
 begin
   with Clipboard do begin
     Clear;
-    AsText := memInput.Text;
+    AsText := memOutput.Text;
   end;
 end;
 
@@ -577,19 +596,70 @@ begin
   btnCopy.SetFocus;
 end;
 
-procedure TfrmSQLFunctionConverter.CreateOutputSection(var slStatement: TStringlist);
+function TfrmSQLFunctionConverter.GetOutParameterList: TStringlist;
 var
   ii   : integer;
-  sLine: String;
+  sName: String;
 begin
+  Result := TStringList.Create;
+  Result.Delimiter := ',';
+  Result.StrictDelimiter := True;
+  //Grid durchlaufen und die OUT-Parameter holen
+  with grdParameter do begin
+    for ii := 1 to RowCount - 1 do begin
+      if (UpperCase(Trim(Cells[COL_DIRECTION, ii])) = 'OUT')
+      or (UpperCase(Trim(Cells[COL_DIRECTION, ii])) = 'INOUT')
+      then begin
+        sName := Trim(Cells[COL_NAME, ii]);
+        if (sName <> '') then
+          Result.Add(sName)
+        ;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmSQLFunctionConverter.CreateOutputSection(var slStatement: TStringlist);
+var
+  ii: integer;
+  iPosEnd: integer;
+  returnFound: boolean;
+  sLine: String;
+  sOutParameter: String;
+begin
+  //OUT-Parameter zusammensetzen
+  sOutParameter := GetOutParameterList.DelimitedText;
+  if sOutParameter <> '' then
+    sOutParameter := StringReplace(sOutParameter, ',', ', ', [rfReplaceAll]) + ';' + CRLF
+  ;
+  returnFound := False;
+  iPosEnd := 1;
   for ii := 0 to slStatement.Count - 1 do begin
     sLine := slStatement[ii];
-
     if Trim(sLine).StartsWith('RETURN', True) then begin
+      returnFound := True;
       //Kommentar kicken & RETURN durch SELECT ersetzen
       sLine := StringReplace(GetLineWithoutComment(sLine), 'RETURN', 'SELECT', [rfReplaceAll, rfIgnoreCase]);
+
+      //Falls es noch OUT-Parameter gibt, dann diese anhängen
+      if (sOutParameter <> '') then
+        sLine := sLine.TrimRight([';']) + ', ' + sOutParameter
+      ;
       slStatement[ii] := sLine;
     end;
+
+    //Direkt die Position des letzten END speichern, falls man sie unten benötigt
+    if Trim(sLine).StartsWith('END', True) then
+      iPosEnd := ii;
+    ;
+  end;
+
+  //Wurde kein RETURN gefunden, wird bei vorhandenen OUT-Parametern das SELECT vor dem letzten END eingefügt
+  if (not returnFound) and (sOutParameter <> '') then begin
+    //Nicht die beste Lösung, aber nur hinzufügen, wenn es tatsächlich eins der letzten ENDs ist
+    if (iPosEnd > slStatement.Count - 3) then
+      slStatement.Insert(iPosEnd, 'SELECT ' + sOutParameter)
+    ;
   end;
 end;
 
@@ -645,14 +715,18 @@ var
 begin
   InitGrid(False);
   //Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
+  //Unschön, aber wir machen´s so - Zuerst nach dem ersten @ suchen und dann von der Stelle rückwärts nach der ersten "(" suchen wg. IN/OUT
   iPosStart := Pos(PARAMETER_START, memInput.Text, 1);
-  iPosEnd   := Pos(FUNCTION_END   , UpperCase(memInput.Text), 1) - iPosStart;
+  while (iPosStart > 0) and (memInput.Text[iPosStart] <> '(') do begin
+    Dec(iPosStart);
+  end;
+  iPosEnd := Pos(FUNCTION_END, UpperCase(memInput.Text), 1) - iPosStart;
   if (iPosEnd <= 0) then
     iPosEnd := Pos(PROCEDURE_START, UpperCase(memInput.Text), 1) - iPosStart
   ;
 
   if (iPosStart <> 0) and (iPosEnd <> 0) then begin
-    sParameterHeader := Copy(memInput.Text, iPosStart, iPosEnd);
+    sParameterHeader := Copy(memInput.Text, iPosStart + 1, iPosEnd);
     slParameter := TStringList.Create;
     try
       slParameter.Delimiter := ',';
@@ -661,17 +735,7 @@ begin
         Add(
           Trim(
             StringReplace(
-              StringReplace(
-                StringReplace(
-                  sParameterHeader,
-                  'IN ',
-                  '',
-                  [rfReplaceAll, rfIgnoreCase]
-                ),
-                'OUT ',
-                '',
-                [rfReplaceAll, rfIgnoreCase]
-              ),
+              sParameterHeader,
               CR,
               CRLF,
               [rfReplaceAll]
