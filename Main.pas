@@ -585,7 +585,7 @@ procedure TfrmSQLFunctionConverter.btnCopyClick(Sender: TObject);
 begin
   with Clipboard do begin
     Clear;
-    AsText := memInput.Text;
+    AsText := memOutput.Text;
   end;
 end;
 
