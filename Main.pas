@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids, ClipBrd, IniFiles,
-  Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils ,ConverterConst;
+  Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils, ShellAPI, ConverterConst;
 
 type
   TfrmSQLFunctionConverter = class(TForm)
@@ -149,13 +149,30 @@ end;
 
 procedure TfrmSQLFunctionConverter.btnClearConfigClick(Sender: TObject);
 begin
-  if (MessageDlg('Achtung | Soll die Konfiguration zurückgesetzt werden?' , TMsgDlgType.mtConfirmation, mbYesNo, 0) = mrYes) then begin
-    with ConfigFile do begin
-      EraseSection(INI_SEC_FORM);
-      EraseSection(INI_SEC_OUTPUT);
+  if GetKeyState(VK_SHIFT) < 0 then begin
+    //Bei gedrückter SHIFT-Taste die Config im Editor öffnen (To-Know: Wird nach dem Verlassen des Programms überschrieben!)
+    if FileExists(ConfigFile.FileName) then
+      ShellExecute(
+        0,
+        'open',
+        PChar(ConfigFile.FileName),
+        nil,
+        nil,
+        SW_SHOWNORMAL
+      )
+    else
+      MessageDlg('Konfigurationsdatei nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0)
+    ;
+  end
+  else begin
+    if (MessageDlg('Achtung | Soll die Konfiguration zurückgesetzt werden?' , TMsgDlgType.mtConfirmation, mbYesNo, 0) = mrYes) then begin
+      with ConfigFile do begin
+        EraseSection(INI_SEC_FORM);
+        EraseSection(INI_SEC_OUTPUT);
+      end;
+      TStyleManager.SetStyle(DEFAULT_STYLE);
+      InitForm;
     end;
-    TStyleManager.SetStyle(DEFAULT_STYLE);
-    InitForm;
   end;
 end;
 
