@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids, ClipBrd, IniFiles,
-  Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, ConverterConst;
+  Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils ,ConverterConst;
 
 type
   TfrmSQLFunctionConverter = class(TForm)
@@ -67,10 +67,11 @@ type
     ConfigFile: TIniFile;
     iLastRow  : integer;
     iLastCol  : integer;
-    function AdjustColumn(iCol : integer) : integer;
-    function getOffset(sText: String; checkDatatype: boolean) : integer;
-    function GetLineWithoutComment(sLine: String) : String;
+    function AdjustColumn(iCol : integer): integer;
+    function GetOffset(sText: String; checkDatatype: boolean): integer;
+    function GetLineWithoutComment(sLine: String): String;
     function GetOutParameterList: TStringlist;
+    function GetConfigFile: String;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
@@ -424,14 +425,14 @@ begin
     iPosStart := UpperCase(sParameter).IndexOf(DEFAULT_START);
     if (iPosStart > 0) then begin
       iPosStart  := iPosStart + Length(DEFAULT_START);
-      iPosEnd    := Length(sParameter) - getOffset(sParameter, false);
+      iPosEnd    := Length(sParameter) - GetOffset(sParameter, false);
       sValue     := Trim(Copy(sParameter, iPosStart, iPosEnd - iPosStart + 1));
       sParameter := Trim(Copy(sParameter, 1, iPosStart - Length(DEFAULT_START)));
     end;
 
     //Der Datentyp - Vom Ende der Bezeichnung bis zum Wort "Default" oder bis zum Ende
     iPosStart := 0;
-    iPosEnd   := sParameter.Length - getOffset(sParameter, true);
+    iPosEnd   := sParameter.Length - GetOffset(sParameter, true);
     sDatatype := Trim(Copy(sParameter, iPosStart, iPosEnd));
 
     //Zum Schluss noch alle Werte in die Grid-Zeile packen
@@ -447,7 +448,7 @@ begin
   end;
 end;
 
-function TfrmSQLFunctionConverter.getOffset(sText: String; checkDatatype: boolean): integer;
+function TfrmSQLFunctionConverter.GetOffset(sText: String; checkDatatype: boolean): integer;
 begin
   //Überprüfen, ob der Text mit ',' endet oder ...
   Result := 0;
@@ -684,6 +685,20 @@ begin
   end;
 end;
 
+function TfrmSQLFunctionConverter.GetConfigFile: String;
+var
+  sPath: String;
+begin
+  //Versuchen die Config standardmäßig in %APPDATA% zu speichern
+  sPath := TPath.Combine(GetEnvironmentVariable('APPDATA'), frmSQLFunctionConverter.Caption);
+  if not ForceDirectories(sPath) then
+    //Falls das nicht geht, dann im Verzeichnis der Exe
+    sPath := ExtractFilePath(Application.ExeName)
+  ;
+
+  Result := TPath.Combine(sPath, 'Fx_Settings.ini');
+end;
+
 function TfrmSQLFunctionConverter.GetLineWithoutComment(sLine: String) : String;
 var
   iPos: integer;
@@ -804,7 +819,8 @@ end;
 
 procedure TfrmSQLFunctionConverter.FormCreate(Sender: TObject);
 begin
-  ConfigFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
+  //ConfigFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
+  ConfigFile := TIniFile.Create(GetConfigFile);
   //Style laden
   TStyleManager.TrySetStyle(ConfigFile.ReadString(INI_SEC_FORM, INI_KEY_STYLE, ''), False);
 end;
