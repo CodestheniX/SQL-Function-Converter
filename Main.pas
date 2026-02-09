@@ -3,9 +3,10 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids, ClipBrd, IniFiles,
-  Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils, ShellAPI, ConverterConst;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.UITypes, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids,
+  ClipBrd, IniFiles, Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils, ShellAPI,
+  EditorSettings, ConverterConst;
 
 type
   TfrmSQLFunctionConverter = class(TForm)
@@ -44,7 +45,8 @@ type
     mitConvert: TMenuItem;
     mitRefresh: TMenuItem;
     N3: TMenuItem;
-    btnClearConfig: TMenuItem;
+    mitClearConfig: TMenuItem;
+    mitSelectOutputEditor: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -61,8 +63,9 @@ type
     procedure grdParameterMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure mitReturnToSelectClick(Sender: TObject);
     procedure mitSaveOutputClick(Sender: TObject);
-    procedure btnClearConfigClick(Sender: TObject);
+    procedure mitClearConfigClick(Sender: TObject);
     procedure grdParameterDblClick(Sender: TObject);
+    procedure mitSelectOutputEditorClick(Sender: TObject);
   private
     ConfigFile: TIniFile;
     iLastRow  : integer;
@@ -147,7 +150,7 @@ begin
   end;
 end;
 
-procedure TfrmSQLFunctionConverter.btnClearConfigClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitClearConfigClick(Sender: TObject);
 begin
   if GetKeyState(VK_SHIFT) < 0 then begin
     //Bei gedrückter SHIFT-Taste die Config im Editor öffnen (To-Know: Wird nach dem Verlassen des Programms überschrieben!)
@@ -377,6 +380,18 @@ procedure TfrmSQLFunctionConverter.mitSaveOutputClick(Sender: TObject);
 begin
   if (dlgSave.Execute) then begin
     memOutput.Lines.SaveToFile(dlgSave.FileName, TEncoding.UTF8);
+  end;
+end;
+
+procedure TfrmSQLFunctionConverter.mitSelectOutputEditorClick(Sender: TObject);
+var
+  fEditorSettings: TfrmEditorSettings;
+begin
+  fEditorSettings := TfrmEditorSettings.Create(Self, ConfigFile);
+  try
+    fEditorSettings.ShowModal;
+  finally
+    fEditorSettings.Free;
   end;
 end;
 

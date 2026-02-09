@@ -298,9 +298,13 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       object N3: TMenuItem
         Caption = '-'
       end
-      object btnClearConfig: TMenuItem
+      object mitSelectOutputEditor: TMenuItem
+        Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen'
+        OnClick = mitSelectOutputEditorClick
+      end
+      object mitClearConfig: TMenuItem
         Caption = 'Konfiguration zur'#252'cksetzen'
-        OnClick = btnClearConfigClick
+        OnClick = mitClearConfigClick
       end
     end
   end
