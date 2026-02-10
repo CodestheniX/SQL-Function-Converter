@@ -9,10 +9,24 @@ uses
 type
   TfrmEditorSettings = class(TForm)
     pnlMain: TPanel;
-    pnlButtons: TPanel;
-    btnOK: TButton;
-    btnCancel: TButton;
+    pnlBot: TPanel;
     lbxEditors: TListBox;
+    pnlButtons: TPanel;
+    btnCancel: TButton;
+    btnOK: TButton;
+    pnlEditors: TPanel;
+    pnlProperties: TPanel;
+    pnlPropertiesHeader: TPanel;
+    pnlEditorsHeader: TPanel;
+    lblEditors: TLabel;
+    lblProperties: TLabel;
+    Splitter1: TSplitter;
+    lblName: TLabel;
+    lblPath: TLabel;
+    lblParameter: TLabel;
+    edtName: TEdit;
+    edtPath: TEdit;
+    edtParameter: TEdit;
   private
     //
   public
