@@ -1,4 +1,4 @@
-unit EditorSettings;
+﻿unit EditorSettings;
 
 interface
 
@@ -41,9 +41,11 @@ type
     btnEditorButtons: TPanel;
     btnAdd: TButton;
     btnDelete: TButton;
+    procedure FormDestroy(Sender: TObject);
+    procedure lbxEditorsClick(Sender: TObject);
   private
-    EditorProfile : TEditorProfile;
     procedure LoadEditorList;
+    procedure LoadEditorSettings;
   public
     EditorsFile: TIniFile;
     constructor Create(AOwner: TComponent; var AEditorsFile: TIniFile); reintroduce;
@@ -65,14 +67,32 @@ begin
   LoadEditorList;
 end;
 
+procedure TfrmEditorSettings.FormDestroy(Sender: TObject);
+var
+  ii: integer;
+begin
+  //Listbox-Objekte wieder freigeben
+  for ii := 0 to lbxEditors.Count -1 do begin
+    lbxEditors.Items.Objects[ii].Free;
+  end;
+end;
+
+procedure TfrmEditorSettings.lbxEditorsClick(Sender: TObject);
+begin
+  LoadEditorSettings;
+end;
+
 procedure TfrmEditorSettings.LoadEditorList;
 var
+  eProfile      : TEditorProfile;
   slSections    : TStringlist;
   sActiveEditor : String;
   sSectionName  : String;
   sEditorName   : String;
+  iLbxItemIndex : integer;
 begin
   lbxEditors.Clear;
+  iLbxItemIndex := -1;
   slSections := TStringlist.Create;
   try
     //Den aktiven Editor rauslesen
@@ -81,26 +101,52 @@ begin
     //Profile aus den Editorsettings auslesen
     EditorsFile.ReadSections(slSections);
     for sSectionName in slSections do begin
-      //Nur Sections mit "Editor_..." ber�cksichtigen
+      //Nur Sections mit "Editor_..." berücksichtigen
       if not sSectionName.StartsWith(EDITORS_SEC_EDITOR_X) then
         Continue
       ;
       sEditorName := Copy(sSectionName, Length(EDITORS_SEC_EDITOR_X) + 1, MaxInt);
 
       //Profile auslesen & anzeigen
-      EditorProfile := TEditorProfile.Create;
-      with EditorProfile do begin
+      eProfile := TEditorProfile.Create;
+      with eProfile do begin
         Name      := sEditorName;
         Path      := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PATH, '');
         Parameter := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PARAMETER, '');
-        isActive  := SameText(sActiveEditor, sEditorName);
+        isActive  := SameText(sActiveEditor, sSectionName);
+        if isActive then
+          Name := SELECTED_EDITOR_SYMBOL + ' ' + Name;
+        ;
       end;
+      lbxEditors.Items.AddObject(eProfile.Name, eProfile);
+      inc(iLbxItemIndex);
 
-      lbxEditors.Items.AddObject(EditorProfile.Name, EditorProfile);
+      //Aktive-Editor selektieren
+      if eProfile.isActive then begin
+        lbxEditors.ItemIndex := iLbxItemIndex;
+        lbxEditors.OnClick(self);
+      end;
     end;
   finally
     slSections.Free;
   end;
+end;
+
+procedure TfrmEditorSettings.LoadEditorSettings;
+var
+  eProfile : TEditorProfile;
+begin
+  eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
+  with eProfile do begin
+    if isActive then
+      Name := Trim(StringReplace(Name, SELECTED_EDITOR_SYMBOL, '', [rfReplaceAll]));
+    ;
+    edtName.Text      := Name;
+    edtPath.Text      := Path;
+    edtParameter.Text := Parameter;
+    chkUseEditor.Checked := isActive;
+  end;
+
 end;
 
 end.

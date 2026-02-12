@@ -48,6 +48,7 @@ const
   MIN_COL_WIDTH           = 110;
   MIN_COL_WIDTH_DIRECTION =  40;
 
+
   //*** Fx_Settings.ini: Sections & Keys der Konfiguration
   CONFIG_FILENAME = 'Fx_Settings.ini';
   //Section: Form
@@ -64,6 +65,7 @@ const
   CONFIG_SEC_OUTPUT         = 'Output';
   CONFIG_KEY_RETURNTOSELECT = 'ReturnToSelect';
 
+
   //*** Fx_Editors.ini: Sections & Keys der Editorsettings
   EDITORS_FILENAME = 'Fx_Editors.ini';
   //Section: Editor
@@ -75,9 +77,11 @@ const
   EDITORS_KEY_PATH      = 'Path';
   EDITORS_KEY_PARAMETER = 'Parameter';
 
+
   //*** Ermittlung des Dateinamen
   CREATE_FUNCTION     = 'CREATE FUNCTION ';
   CREATE_PROCEDURE    = 'CREATE PROCEDURE ';
+
 
   //*** Parameter (Kopf)
   PARAMETER_START     = '@';
@@ -88,6 +92,7 @@ const
   DEFAULT_START       = ' DEFAULT ';
   DECLARE             = 'DECLARE';
 
+
   //*** Grid "Variablen"
   COL_DIRECTION = 0;
   COL_NAME      = 1;
@@ -95,9 +100,11 @@ const
   COL_VALUE     = 3;
   COL_COMMENT   = 4;
 
+
   //*** Sonstiges
-  CR    = #13;
-  CRLF  = #13#10;
+  CR   = #13;
+  CRLF = #13#10;
+  SELECTED_EDITOR_SYMBOL = '►';
 
 implementation
 

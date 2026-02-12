@@ -10,6 +10,7 @@ object frmEditorSettings: TfrmEditorSettings
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OnDestroy = FormDestroy
   TextHeight = 15
   object pnlMain: TPanel
     Left = 0
@@ -50,6 +51,7 @@ object frmEditorSettings: TfrmEditorSettings
           'vsCode')
         ParentFont = False
         TabOrder = 0
+        OnClick = lbxEditorsClick
       end
       object pnlEditorsHeader: TPanel
         Left = 1
@@ -123,6 +125,7 @@ object frmEditorSettings: TfrmEditorSettings
       Height = 158
       Align = alClient
       TabOrder = 1
+      ExplicitLeft = 135
       DesignSize = (
         371
         158)
