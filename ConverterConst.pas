@@ -48,20 +48,32 @@ const
   MIN_COL_WIDTH           = 110;
   MIN_COL_WIDTH_DIRECTION =  40;
 
-  //*** Sections & Keys der Konfiguratipn (Ini-Datei)
+  //*** Fx_Settings.ini: Sections & Keys der Konfiguration
+  CONFIG_FILENAME = 'Fx_Settings.ini';
   //Section: Form
-  INI_SEC_FORM              = 'Form';
-  INI_KEY_STYLE             = 'Style';
-  INI_KEY_HEIGHT            = 'Height';
-  INI_KEY_WIDTH             = 'Width';
-  INI_KEY_SHOWCOMMENTS      = 'ShowComments';
-  INI_KEY_PNLINPUTWIDTH     = 'pnlInputWidth';
-  INI_KEY_PNLPARAMETERWIDTH = 'pnlParameterWidth';
-  INI_KEY_PNLOUTPUTWIDTH    = 'pnlOutputWidth';
+  CONFIG_SEC_FORM              = 'Form';
+  CONFIG_KEY_STYLE             = 'Style';
+  CONFIG_KEY_HEIGHT            = 'Height';
+  CONFIG_KEY_WIDTH             = 'Width';
+  CONFIG_KEY_SHOWCOMMENTS      = 'ShowComments';
+  CONFIG_KEY_PNLINPUTWIDTH     = 'pnlInputWidth';
+  CONFIG_KEY_PNLPARAMETERWIDTH = 'pnlParameterWidth';
+  CONFIG_KEY_PNLOUTPUTWIDTH    = 'pnlOutputWidth';
 
   //Section: Output
-  INI_SEC_OUTPUT         = 'Output';
-  INI_KEY_RETURNTOSELECT = 'ReturnToSelect';
+  CONFIG_SEC_OUTPUT         = 'Output';
+  CONFIG_KEY_RETURNTOSELECT = 'ReturnToSelect';
+
+  //*** Fx_Editors.ini: Sections & Keys der Editorsettings
+  EDITORS_FILENAME = 'Fx_Editors.ini';
+  //Section: Editor
+  EDITORS_SEC_EDITOR = 'Editor';
+  EDITORS_KEY_ACTIVE = 'Active';
+
+  //Section: Editor_...
+  EDITORS_SEC_EDITOR_X  = 'Editor_';
+  EDITORS_KEY_PATH      = 'Path';
+  EDITORS_KEY_PARAMETER = 'Parameter';
 
   //*** Ermittlung des Dateinamen
   CREATE_FUNCTION     = 'CREATE FUNCTION ';

@@ -67,14 +67,15 @@ type
     procedure grdParameterDblClick(Sender: TObject);
     procedure mitSelectOutputEditorClick(Sender: TObject);
   private
-    ConfigFile: TIniFile;
-    iLastRow  : integer;
-    iLastCol  : integer;
+    ConfigFile : TIniFile; //Konfigurationen für die Main-Form
+    EditorsFile: TIniFile; //Hinterlegte Editoren & aktiver Editor
+    iLastRow : integer;
+    iLastCol : integer;
     function AdjustColumn(iCol : integer): integer;
     function GetOffset(sText: String; checkDatatype: boolean): integer;
     function GetLineWithoutComment(sLine: String): String;
     function GetOutParameterList: TStringlist;
-    function GetConfigFile: String;
+    function GetConfigFile(sFilename: String): String;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
@@ -170,8 +171,8 @@ begin
   else begin
     if (MessageDlg('Achtung | Soll die Konfiguration zurückgesetzt werden?' , TMsgDlgType.mtConfirmation, mbYesNo, 0) = mrYes) then begin
       with ConfigFile do begin
-        EraseSection(INI_SEC_FORM);
-        EraseSection(INI_SEC_OUTPUT);
+        EraseSection(CONFIG_SEC_FORM);
+        EraseSection(CONFIG_SEC_OUTPUT);
       end;
       TStyleManager.SetStyle(DEFAULT_STYLE);
       InitForm;
@@ -201,17 +202,17 @@ procedure TfrmSQLFunctionConverter.InitForm;
 begin
   with ConfigFile do begin
     //Menü
-    mitShowComments.Checked   := ReadBool(INI_SEC_FORM  , INI_KEY_SHOWCOMMENTS  , true);
-    mitReturnToSelect.Checked := ReadBool(INI_SEC_OUTPUT, INI_KEY_RETURNTOSELECT, true);
+    mitShowComments.Checked   := ReadBool(CONFIG_SEC_FORM  , CONFIG_KEY_SHOWCOMMENTS  , true);
+    mitReturnToSelect.Checked := ReadBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_RETURNTOSELECT, true);
 
     //Form
-    frmSQLFunctionConverter.Width  := ReadInteger(INI_SEC_FORM, INI_KEY_WIDTH , FRM_WIDTH);
-    frmSQLFunctionConverter.Height := ReadInteger(INI_SEC_FORM, INI_KEY_HEIGHT, FRM_HEIGHT);
+    frmSQLFunctionConverter.Width  := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_WIDTH , FRM_WIDTH);
+    frmSQLFunctionConverter.Height := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_HEIGHT, FRM_HEIGHT);
 
     //Panels
-    pnlInput.Width     := ReadInteger(INI_SEC_FORM, INI_KEY_PNLINPUTWIDTH    , PNL_INPUT_WIDTH);
-    pnlParameter.Width := ReadInteger(INI_SEC_FORM, INI_KEY_PNLPARAMETERWIDTH, PNL_PARAMETER_WIDTH);
-    pnlOutput.Width    := ReadInteger(INI_SEC_FORM, INI_KEY_PNLOUTPUTWIDTH   , PNL_OUTPUT_WIDTH);
+    pnlInput.Width     := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLINPUTWIDTH    , PNL_INPUT_WIDTH);
+    pnlParameter.Width := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLPARAMETERWIDTH, PNL_PARAMETER_WIDTH);
+    pnlOutput.Width    := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLOUTPUTWIDTH   , PNL_OUTPUT_WIDTH);
   end;
 
   //Parameter-Grid
@@ -387,7 +388,7 @@ procedure TfrmSQLFunctionConverter.mitSelectOutputEditorClick(Sender: TObject);
 var
   fEditorSettings: TfrmEditorSettings;
 begin
-  fEditorSettings := TfrmEditorSettings.Create(Self, ConfigFile);
+  fEditorSettings := TfrmEditorSettings.Create(Self, EditorsFile);
   try
     fEditorSettings.ShowModal;
   finally
@@ -398,14 +399,14 @@ end;
 procedure TfrmSQLFunctionConverter.mitReturnToSelectClick(Sender: TObject);
 begin
   mitReturnToSelect.Checked := not mitReturnToSelect.Checked;
-  ConfigFile.WriteBool(INI_SEC_OUTPUT, INI_KEY_RETURNTOSELECT, mitReturnToSelect.Checked);
+  ConfigFile.WriteBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_RETURNTOSELECT, mitReturnToSelect.Checked);
 end;
 
 procedure TfrmSQLFunctionConverter.mitShowCommentsClick(Sender: TObject);
 begin
   mitShowComments.Checked := not mitShowComments.Checked;
   HandleCommentColumnVisibility;
-  ConfigFile.WriteBool(INI_SEC_FORM, INI_KEY_SHOWCOMMENTS, mitShowComments.Checked);
+  ConfigFile.WriteBool(CONFIG_SEC_FORM, CONFIG_KEY_SHOWCOMMENTS, mitShowComments.Checked);
 end;
 
 procedure TfrmSQLFunctionConverter.mitStyleClick(Sender: TObject);
@@ -717,7 +718,7 @@ begin
   end;
 end;
 
-function TfrmSQLFunctionConverter.GetConfigFile: String;
+function TfrmSQLFunctionConverter.GetConfigFile(sFilename: String): String;
 var
   sPath: String;
 begin
@@ -728,7 +729,7 @@ begin
     sPath := ExtractFilePath(Application.ExeName)
   ;
 
-  Result := TPath.Combine(sPath, 'Fx_Settings.ini');
+  Result := TPath.Combine(sPath, sFilename);
 end;
 
 function TfrmSQLFunctionConverter.GetLineWithoutComment(sLine: String) : String;
@@ -840,26 +841,29 @@ end;
 procedure TfrmSQLFunctionConverter.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   with ConfigFile do begin
-    WriteString (INI_SEC_FORM, INI_KEY_STYLE            , TStyleManager.ActiveStyle.Name);
-    WriteInteger(INI_SEC_FORM, INI_KEY_WIDTH            , frmSQLFunctionConverter.Width);
-    WriteInteger(INI_SEC_FORM, INI_KEY_HEIGHT           , frmSQLFunctionConverter.Height);
-    WriteInteger(INI_SEC_FORM, INI_KEY_PNLINPUTWIDTH    , pnlInput.Width);
-    WriteInteger(INI_SEC_FORM, INI_KEY_PNLPARAMETERWIDTH, pnlParameter.Width);
-    WriteInteger(INI_SEC_FORM, INI_KEY_PNLOUTPUTWIDTH   , pnlOutput.Width);
+    WriteString (CONFIG_SEC_FORM, CONFIG_KEY_STYLE            , TStyleManager.ActiveStyle.Name);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_WIDTH            , frmSQLFunctionConverter.Width);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_HEIGHT           , frmSQLFunctionConverter.Height);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLINPUTWIDTH    , pnlInput.Width);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLPARAMETERWIDTH, pnlParameter.Width);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLOUTPUTWIDTH   , pnlOutput.Width);
   end;
 end;
 
 procedure TfrmSQLFunctionConverter.FormCreate(Sender: TObject);
 begin
   //ConfigFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
-  ConfigFile := TIniFile.Create(GetConfigFile);
+  ConfigFile := TIniFile.Create(GetConfigFile(CONFIG_FILENAME));
+  EditorsFile:= TIniFile.Create(GetConfigFile(EDITORS_FILENAME));
+
   //Style laden
-  TStyleManager.TrySetStyle(ConfigFile.ReadString(INI_SEC_FORM, INI_KEY_STYLE, ''), False);
+  TStyleManager.TrySetStyle(ConfigFile.ReadString(CONFIG_SEC_FORM, CONFIG_KEY_STYLE, ''), False);
 end;
 
 procedure TfrmSQLFunctionConverter.FormDestroy(Sender: TObject);
 begin
   ConfigFile.Free;
+  EditorsFile.Free;
 end;
 
 end.

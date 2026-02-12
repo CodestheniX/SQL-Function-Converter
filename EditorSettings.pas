@@ -7,6 +7,15 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, IniFiles, ConverterConst;
 
 type
+  TEditorProfile = class
+    public
+      Name      : String;
+      Path      : String;
+      Parameter : String;
+      isActive  : boolean;
+  end;
+
+type
   TfrmEditorSettings = class(TForm)
     pnlMain: TPanel;
     pnlBot: TPanel;
@@ -27,11 +36,17 @@ type
     edtName: TEdit;
     edtPath: TEdit;
     edtParameter: TEdit;
+    chkUseEditor: TCheckBox;
+    btnTestEditor: TButton;
+    btnEditorButtons: TPanel;
+    btnAdd: TButton;
+    btnDelete: TButton;
   private
-    //
+    EditorProfile : TEditorProfile;
+    procedure LoadEditorList;
   public
-    ConfigFile: TIniFile;
-    constructor Create(AOwner: TComponent; AConfigFile: TIniFile); reintroduce;
+    EditorsFile: TIniFile;
+    constructor Create(AOwner: TComponent; var AEditorsFile: TIniFile); reintroduce;
   end;
 
 var
@@ -43,10 +58,49 @@ implementation
 
 { TfrmEditorSettings }
 
-constructor TfrmEditorSettings.Create(AOwner: TComponent; AConfigFile: TIniFile);
+constructor TfrmEditorSettings.Create(AOwner: TComponent; var AEditorsFile: TIniFile);
 begin
   inherited Create(AOwner);
-  ConfigFile := AConfigFile;
+  EditorsFile := AEditorsFile;
+  LoadEditorList;
+end;
+
+procedure TfrmEditorSettings.LoadEditorList;
+var
+  slSections    : TStringlist;
+  sActiveEditor : String;
+  sSectionName  : String;
+  sEditorName   : String;
+begin
+  lbxEditors.Clear;
+  slSections := TStringlist.Create;
+  try
+    //Den aktiven Editor rauslesen
+    sActiveEditor := EditorsFile.ReadString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, '');
+
+    //Profile aus den Editorsettings auslesen
+    EditorsFile.ReadSections(slSections);
+    for sSectionName in slSections do begin
+      //Nur Sections mit "Editor_..." berücksichtigen
+      if not sSectionName.StartsWith(EDITORS_SEC_EDITOR_X) then
+        Continue
+      ;
+      sEditorName := Copy(sSectionName, Length(EDITORS_SEC_EDITOR_X) + 1, MaxInt);
+
+      //Profile auslesen & anzeigen
+      EditorProfile := TEditorProfile.Create;
+      with EditorProfile do begin
+        Name      := sEditorName;
+        Path      := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PATH, '');
+        Parameter := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PARAMETER, '');
+        isActive  := SameText(sActiveEditor, sEditorName);
+      end;
+
+      lbxEditors.Items.AddObject(EditorProfile.Name, EditorProfile);
+    end;
+  finally
+    slSections.Free;
+  end;
 end;
 
 end.
