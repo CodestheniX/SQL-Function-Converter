@@ -100,6 +100,7 @@ object frmEditorSettings: TfrmEditorSettings
           Font.Style = []
           ParentFont = False
           TabOrder = 0
+          OnClick = btnAddClick
         end
         object btnDelete: TButton
           Left = 62
@@ -115,6 +116,7 @@ object frmEditorSettings: TfrmEditorSettings
           Font.Style = []
           ParentFont = False
           TabOrder = 1
+          OnClick = btnDeleteClick
         end
       end
     end
@@ -125,7 +127,7 @@ object frmEditorSettings: TfrmEditorSettings
       Height = 158
       Align = alClient
       TabOrder = 1
-      ExplicitLeft = 135
+      TabStop = True
       DesignSize = (
         371
         158)
@@ -205,13 +207,14 @@ object frmEditorSettings: TfrmEditorSettings
         Font.Height = -12
         Font.Name = 'Tahoma'
         Font.Style = []
+        MaxLength = 25
         ParentFont = False
         TabOrder = 1
       end
       object edtPath: TEdit
         Left = 88
         Top = 69
-        Width = 276
+        Width = 254
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = ANSI_CHARSET
@@ -234,7 +237,7 @@ object frmEditorSettings: TfrmEditorSettings
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        TabOrder = 3
+        TabOrder = 4
       end
       object chkUseEditor: TCheckBox
         Left = 5
@@ -251,14 +254,14 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 4
+        TabOrder = 5
       end
       object btnTestEditor: TButton
         Left = 289
         Top = 128
         Width = 75
         Height = 25
-        Anchors = [akLeft, akTop, akRight]
+        Anchors = [akTop, akRight]
         Caption = 'Testen'
         Constraints.MinWidth = 75
         Font.Charset = ANSI_CHARSET
@@ -267,8 +270,24 @@ object frmEditorSettings: TfrmEditorSettings
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        TabOrder = 5
+        TabOrder = 6
         TabStop = False
+      end
+      object btnSelectPath: TButton
+        Left = 341
+        Top = 69
+        Width = 22
+        Height = 22
+        Anchors = [akTop, akRight]
+        Caption = '...'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 3
+        OnClick = btnSelectPathClick
       end
     end
   end
@@ -318,5 +337,12 @@ object frmEditorSettings: TfrmEditorSettings
         TabOrder = 0
       end
     end
+  end
+  object dlgOpen: TOpenDialog
+    Filter = 'Ausf'#252'hrbare Dateien (*.exe)|*.exe|Alle Dateien (*.*)|*.*'
+    Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
+    Title = 'Editor-Datei ausw'#228'hlen'
+    Left = 12
+    Top = 163
   end
 end

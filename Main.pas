@@ -104,12 +104,12 @@ var
   iTextWidth : integer;
 begin
   with grdParameter do begin
-    if iCol <> COL_DIRECTION then
+    if (iCol <> COL_DIRECTION) then
       iMaxWidth := MIN_COL_WIDTH
     else
       iMaxWidth := MIN_COL_WIDTH_DIRECTION
     ;
-    if RowCount > 0 then begin
+    if (RowCount > 0) then begin
       for iRow := 1 to RowCount -1 do begin
         iTextWidth := Canvas.TextWidth(Cells[iCol, iRow]) + GridLineWidth + 10;
         if (iTextWidth > iMaxWidth) then begin
@@ -130,7 +130,7 @@ var
 begin
   with grdParameter do begin
     //Setzen des Headers
-    if RowCount > 1 then
+    if (RowCount > 1) then
       FixedRows := 1
     ;
     //Anpassung der Spaltenbreiten an die Länge des Inhalts - Nur bis Wert
@@ -141,7 +141,7 @@ begin
     end;
 
     //Kommentar-Spalte fix setzen
-    if mitShowComments.Checked then begin
+    if (mitShowComments.Checked) then begin
       ColWidths[COL_COMMENT] := MIN_COL_WIDTH;
       iPanelWidth := iPanelWidth + ColWidths[COL_COMMENT];
     end;
@@ -153,9 +153,9 @@ end;
 
 procedure TfrmSQLFunctionConverter.mitClearConfigClick(Sender: TObject);
 begin
-  if GetKeyState(VK_SHIFT) < 0 then begin
+  if (GetKeyState(VK_SHIFT) < 0) then begin
     //Bei gedrückter SHIFT-Taste die Config im Editor öffnen (To-Know: Wird nach dem Verlassen des Programms überschrieben!)
-    if FileExists(ConfigFile.FileName) then
+    if (FileExists(ConfigFile.FileName)) then
       ShellExecute(
         0,
         'open',
@@ -191,7 +191,7 @@ begin
   //Die Spalte "Wert" in der ersten Zeile selektieren
   with grdParameter do begin
     Col := COL_VALUE;
-    if RowCount > 1 then
+    if (RowCount > 1) then
       Row := 1
     ;
     SetFocus;
@@ -231,7 +231,7 @@ var
 begin
   with grdParameter do begin
     //Initalisierung des Grids
-    if FillHeader then begin
+    if (FillHeader) then begin
       RowCount  := 2;
       FixedRows := 1;
       Cells[COL_DIRECTION, 0] := 'Art';
@@ -298,7 +298,7 @@ begin
     iPosLastDeclare := 0;
     while ii < slStatement.Count do begin
       sCurrentLine := GetLineWithoutComment(Trim(slStatement[ii]));
-      if sCurrentLine.StartsWith(DECLARE, True) then begin
+      if (sCurrentLine.StartsWith(DECLARE, True)) then begin
         //Mehrere Zeilen prüfen wegen Local Temp. Tables
         while (ii < slStatement.Count) and not sCurrentLine.EndsWith(';') do begin
           Inc(ii);
@@ -317,7 +317,7 @@ begin
         sValue    := Trim(Cells[COL_VALUE, ii]);
 
         slDeclares.Add(Format('  DECLARE %s %s;', [sName, sDatatype]));
-        if sValue <> '' then
+        if (sValue <> '') then
           slSets.Add(Format('  SET %s = %s;', [sName, sValue]))
         ;
       end;
@@ -325,7 +325,7 @@ begin
 
     //Falls DECLAREs vorhanden -> Block einfügen
     with slDeclares do begin
-      if Count > 0 then begin
+      if (Count > 0) then begin
         Insert(0, CRLF + '  --Start: DECLARE der Parameter');
         Add('  --Ende: DECLARE der Parameter' + CRLF);
         for ii := 0 to Count - 1 do begin
@@ -336,7 +336,7 @@ begin
 
     //Falls SETs vorhanden -> Block einfügen
     with slSets do begin
-      if Count > 0 then begin
+      if (Count > 0) then begin
         iPosLastDeclare := iPosLastDeclare + slDeclares.Count;
         Insert(0, '  --Start: SET der Parameter');
         Add('  --Ende: SET der Parameter' + CRLF);
@@ -388,11 +388,29 @@ procedure TfrmSQLFunctionConverter.mitSelectOutputEditorClick(Sender: TObject);
 var
   fEditorSettings: TfrmEditorSettings;
 begin
-  fEditorSettings := TfrmEditorSettings.Create(Self, EditorsFile);
-  try
-    fEditorSettings.ShowModal;
-  finally
-    fEditorSettings.Free;
+  if (GetKeyState(VK_SHIFT) < 0) then begin
+    //Bei gedrückter SHIFT-Taste die Editorsettings im Editor öffnen
+    if (FileExists(ConfigFile.FileName)) then
+      ShellExecute(
+        0,
+        'open',
+        PChar(EditorsFile.FileName),
+        nil,
+        nil,
+        SW_SHOWNORMAL
+      )
+    else
+      { TODO : Anlage der Standard-Datei, falls es keine gibt }
+      MessageDlg('Editorsettings nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0)
+    ;
+  end
+  else begin
+    fEditorSettings := TfrmEditorSettings.Create(Self, EditorsFile);
+    try
+      fEditorSettings.ShowModal;
+    finally
+      fEditorSettings.Free;
+    end;
   end;
 end;
 
@@ -419,7 +437,7 @@ begin
     TStyleManager.SetStyle(sStyle);
     (Sender as TMenuItem).Checked := True;
     for ii := 0 to mitStyles.Count -1 do begin
-    if not mitStyles.Items[ii].Equals(Sender) then
+    if (not mitStyles.Items[ii].Equals(Sender)) then
       mitStyles.Items[ii].Checked := False;
     end;
   end;
@@ -441,7 +459,7 @@ begin
     iPosStart := 0;
     iPosEnd := Pos(PARAMETER_START, sParameter, 1);
     //Nichts gefunden? Dann ist es standardmäßig ein "IN"
-    if iPosEnd <> 1 then
+    if (iPosEnd <> 1) then
       sDirection := Trim(Copy(sParameter, iPosStart, iPosEnd - 1))
     else
       sDirection := 'IN'
@@ -485,12 +503,12 @@ function TfrmSQLFunctionConverter.GetOffset(sText: String; checkDatatype: boolea
 begin
   //Überprüfen, ob der Text mit ',' endet oder ...
   Result := 0;
-  if sText.EndsWith(',') then
+  if (sText.EndsWith(',')) then
     Result := 1
   ;
 
   //mit ')' endet
-  if sText.EndsWith(')') then begin
+  if (sText.EndsWith(')')) then begin
     Result := 1;
     if (sText.Length > 1) then begin
       if (checkDatatype and CharInSet(sText[sText.Length - 1], ['0'..'9']))// Wird nach dem Datentypen geschaut, soll das Offset wieder entfernt werden, falls das vorletzte Zeichen nummerisch ist. Grund: VARCHAR(x)
@@ -512,7 +530,7 @@ begin
   grdParameter.MouseToCell(currentPoint.X, currentPoint.Y, iCol, iRow);
 
   //Spaltenbreite anpassen, falls Klick in Überschriftszeile
-  if iRow = 0 then
+  if (iRow = 0) then
     AdjustColumn(iCol);
 end;
 
@@ -596,7 +614,7 @@ begin
     InsertParameterToStatement(slStatement);
 
     //RETURN / INOUT/OUT-Parameter in SELECT umwandeln
-    if mitReturnToSelect.Checked then
+    if (mitReturnToSelect.Checked) then
       CreateOutputSection(slStatement)
     ;
 
@@ -608,7 +626,7 @@ end;
 
 procedure TfrmSQLFunctionConverter.HandleCommentColumnVisibility;
 begin
-  if mitShowComments.Checked then
+  if (mitShowComments.Checked) then
     grdParameter.ColWidths[COL_COMMENT] := MIN_COL_WIDTH
   else
     grdParameter.ColWidths[COL_COMMENT] := 0
@@ -663,14 +681,14 @@ var
 begin
   //OUT-Parameter zusammensetzen
   sOutParameter := GetOutParameterList.DelimitedText;
-  if sOutParameter <> '' then
+  if (sOutParameter <> '') then
     sOutParameter := StringReplace(sOutParameter, ',', ', ', [rfReplaceAll]) + ';' + CRLF
   ;
   returnFound := False;
   iPosEnd := 1;
   for ii := 0 to slStatement.Count - 1 do begin
     sLine := slStatement[ii];
-    if Trim(sLine).StartsWith('RETURN', True) then begin
+    if (Trim(sLine).StartsWith('RETURN', True)) then begin
       returnFound := True;
       //Kommentar kicken & RETURN durch SELECT ersetzen
       sLine := StringReplace(GetLineWithoutComment(sLine), 'RETURN', 'SELECT', [rfReplaceAll, rfIgnoreCase]);
@@ -683,7 +701,7 @@ begin
     end;
 
     //Direkt die Position des letzten END speichern, falls man sie unten benötigt
-    if Trim(sLine).StartsWith('END', True) then
+    if (Trim(sLine).StartsWith('END', True)) then
       iPosEnd := ii;
     ;
   end;
@@ -724,7 +742,7 @@ var
 begin
   //Versuchen die Config standardmäßig in %APPDATA% zu speichern
   sPath := TPath.Combine(GetEnvironmentVariable('APPDATA'), frmSQLFunctionConverter.Caption);
-  if not ForceDirectories(sPath) then
+  if (not ForceDirectories(sPath)) then
     //Falls das nicht geht, dann im Verzeichnis der Exe
     sPath := ExtractFilePath(Application.ExeName)
   ;
@@ -824,7 +842,7 @@ begin
   iPosEnd   := UpperCase(aFilename).IndexOf('(');
   aFilename := Trim(Copy(aFilename, 1, iPosEnd));
 
-  if Trim(aFilename) = '' then
+  if (Trim(aFilename) = '') then
     aFilename := 'Output'
   else
     frmSQLFunctionConverter.Caption := PROGRAMM_NAME + ' | ' + aFilename;

@@ -41,8 +41,13 @@ type
     btnEditorButtons: TPanel;
     btnAdd: TButton;
     btnDelete: TButton;
+    dlgOpen: TOpenDialog;
+    btnSelectPath: TButton;
     procedure FormDestroy(Sender: TObject);
     procedure lbxEditorsClick(Sender: TObject);
+    procedure btnAddClick(Sender: TObject);
+    procedure btnDeleteClick(Sender: TObject);
+    procedure btnSelectPathClick(Sender: TObject);
   private
     procedure LoadEditorList;
     procedure LoadEditorSettings;
@@ -59,6 +64,72 @@ implementation
 {$R *.dfm}
 
 { TfrmEditorSettings }
+
+procedure TfrmEditorSettings.btnAddClick(Sender: TObject);
+var
+  eProfile : TEditorProfile;
+  sBaseName: String;
+  sName    : String;
+  iCounter : integer;
+begin
+  sBaseName := 'Neuer Editor';
+  sName     := sBaseName;
+  iCounter  := 1;
+
+  while lbxEditors.Items.IndexOf(sName) >= 0 do begin
+    Inc(iCounter);
+    sName := sBaseName + IntToStr(iCounter);
+  end;
+
+  eProfile := TEditorProfile.Create;
+  with eProfile do begin
+    Name      := sName;
+    Path      := '';
+    Parameter := '%File%';
+    isActive  := False;
+  end;
+
+  lbxEditors.Items.AddObject(eProfile.Name, eProfile);
+  lbxEditors.ItemIndex := lbxEditors.Count - 1;
+  LoadEditorSettings;
+  edtName.SetFocus;
+end;
+
+procedure TfrmEditorSettings.btnDeleteClick(Sender: TObject);
+var
+  eProfile : TEditorProfile;
+  iIndex   : Integer;
+begin
+  iIndex := lbxEditors.ItemIndex;
+  if (iIndex < 0) then
+    Exit
+  ;
+
+  //Profil löschen & freigeben
+  eProfile := TEditorProfile(lbxEditors.Items.Objects[iIndex]);
+  eProfile.Free;
+  lbxEditors.Items.Delete(iIndex);
+
+  //Nächstes Profil selektieren
+  if (lbxEditors.Count > 0) then begin
+    if (iIndex >= lbxEditors.Count) then
+      iIndex := lbxEditors.Count - 1
+    ;
+    lbxEditors.ItemIndex := iIndex;
+  end
+  else
+    lbxEditors.ItemIndex := -1
+  ;
+
+  LoadEditorSettings;
+end;
+
+procedure TfrmEditorSettings.btnSelectPathClick(Sender: TObject);
+begin
+  if (dlgOpen.Execute) then
+    edtPath.Text := dlgOpen.FileName
+  ;
+end;
 
 constructor TfrmEditorSettings.Create(AOwner: TComponent; var AEditorsFile: TIniFile);
 begin
@@ -89,6 +160,7 @@ var
   sActiveEditor : String;
   sSectionName  : String;
   sEditorName   : String;
+  sDisplayName  : String;
   iLbxItemIndex : integer;
 begin
   lbxEditors.Clear;
@@ -105,7 +177,8 @@ begin
       if not sSectionName.StartsWith(EDITORS_SEC_EDITOR_X) then
         Continue
       ;
-      sEditorName := Copy(sSectionName, Length(EDITORS_SEC_EDITOR_X) + 1, MaxInt);
+      sEditorName  := Copy(sSectionName, Length(EDITORS_SEC_EDITOR_X) + 1, MaxInt);
+      sDisplayName := sEditorName;
 
       //Profile auslesen & anzeigen
       eProfile := TEditorProfile.Create;
@@ -114,17 +187,17 @@ begin
         Path      := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PATH, '');
         Parameter := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PARAMETER, '');
         isActive  := SameText(sActiveEditor, sSectionName);
-        if isActive then
-          Name := SELECTED_EDITOR_SYMBOL + ' ' + Name;
+        if (isActive) then
+          sDisplayName := SELECTED_EDITOR_SYMBOL + ' ' + sDisplayName
         ;
       end;
-      lbxEditors.Items.AddObject(eProfile.Name, eProfile);
+      lbxEditors.Items.AddObject(sDisplayName, eProfile);
       inc(iLbxItemIndex);
 
       //Aktive-Editor selektieren
-      if eProfile.isActive then begin
+      if (eProfile.isActive) then begin
         lbxEditors.ItemIndex := iLbxItemIndex;
-        lbxEditors.OnClick(self);
+        LoadEditorSettings;
       end;
     end;
   finally
@@ -136,17 +209,22 @@ procedure TfrmEditorSettings.LoadEditorSettings;
 var
   eProfile : TEditorProfile;
 begin
-  eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
-  with eProfile do begin
-    if isActive then
-      Name := Trim(StringReplace(Name, SELECTED_EDITOR_SYMBOL, '', [rfReplaceAll]));
-    ;
-    edtName.Text      := Name;
-    edtPath.Text      := Path;
-    edtParameter.Text := Parameter;
-    chkUseEditor.Checked := isActive;
+  if (lbxEditors.ItemIndex >= 0) then begin
+    eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
+    with eProfile do begin
+      edtName.Text      := Name;
+      edtPath.Text      := Path;
+      edtParameter.Text := Parameter;
+      chkUseEditor.Checked := isActive;
+    end;
+  end
+  else begin
+    edtName.Text      := '';
+    edtPath.Text      := '';
+    edtParameter.Text := '';
+    chkUseEditor.Checked := False;
   end;
-
+  btnDelete.Enabled := not chkUseEditor.Checked;
 end;
 
 end.
