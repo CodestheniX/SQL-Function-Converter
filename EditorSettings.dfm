@@ -2,7 +2,7 @@ object frmEditorSettings: TfrmEditorSettings
   Left = 0
   Top = 0
   Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen...'
-  ClientHeight = 193
+  ClientHeight = 164
   ClientWidth = 506
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,13 +16,14 @@ object frmEditorSettings: TfrmEditorSettings
     Left = 0
     Top = 0
     Width = 506
-    Height = 160
+    Height = 131
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 160
     object Splitter1: TSplitter
       Left = 131
       Top = 1
-      Height = 158
+      Height = 129
       ExplicitLeft = 173
       ExplicitTop = -4
       ExplicitHeight = 186
@@ -31,14 +32,15 @@ object frmEditorSettings: TfrmEditorSettings
       Left = 1
       Top = 1
       Width = 130
-      Height = 158
+      Height = 129
       Align = alLeft
       TabOrder = 0
+      ExplicitHeight = 158
       object lbxEditors: TListBox
         Left = 1
         Top = 31
         Width = 128
-        Height = 102
+        Height = 73
         Align = alClient
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
@@ -52,6 +54,7 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         TabOrder = 0
         OnClick = lbxEditorsClick
+        ExplicitHeight = 102
       end
       object pnlEditorsHeader: TPanel
         Left = 1
@@ -81,11 +84,12 @@ object frmEditorSettings: TfrmEditorSettings
       end
       object btnEditorButtons: TPanel
         Left = 1
-        Top = 133
+        Top = 104
         Width = 128
         Height = 24
         Align = alBottom
         TabOrder = 2
+        ExplicitTop = 133
         object btnAdd: TButton
           Left = 1
           Top = 1
@@ -124,13 +128,14 @@ object frmEditorSettings: TfrmEditorSettings
       Left = 134
       Top = 1
       Width = 371
-      Height = 158
+      Height = 129
       Align = alClient
       TabOrder = 1
       TabStop = True
+      ExplicitLeft = 135
       DesignSize = (
         371
-        158)
+        129)
       object lblName: TLabel
         Left = 8
         Top = 40
@@ -150,19 +155,6 @@ object frmEditorSettings: TfrmEditorSettings
         Width = 24
         Height = 14
         Caption = 'Pfad'
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -12
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-      end
-      object lblParameter: TLabel
-        Left = 8
-        Top = 104
-        Width = 56
-        Height = 14
-        Caption = 'Parameter'
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
         Font.Height = -12
@@ -199,7 +191,7 @@ object frmEditorSettings: TfrmEditorSettings
       object edtName: TEdit
         Left = 88
         Top = 37
-        Width = 276
+        Width = 275
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = ANSI_CHARSET
@@ -225,23 +217,9 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         TabOrder = 2
       end
-      object edtParameter: TEdit
-        Left = 88
-        Top = 101
-        Width = 276
-        Height = 22
-        Anchors = [akLeft, akTop, akRight]
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -12
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 4
-      end
       object chkUseEditor: TCheckBox
         Left = 5
-        Top = 132
+        Top = 100
         Width = 98
         Height = 17
         Alignment = taLeftJustify
@@ -254,12 +232,12 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 5
+        TabOrder = 4
       end
       object btnTestEditor: TButton
-        Left = 289
-        Top = 128
-        Width = 75
+        Left = 286
+        Top = 96
+        Width = 77
         Height = 25
         Anchors = [akTop, akRight]
         Caption = 'Testen'
@@ -270,8 +248,9 @@ object frmEditorSettings: TfrmEditorSettings
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        TabOrder = 6
+        TabOrder = 5
         TabStop = False
+        OnClick = btnTestEditorClick
       end
       object btnSelectPath: TButton
         Left = 341
@@ -293,11 +272,12 @@ object frmEditorSettings: TfrmEditorSettings
   end
   object pnlBot: TPanel
     Left = 0
-    Top = 160
+    Top = 131
     Width = 506
     Height = 33
     Align = alBottom
     TabOrder = 1
+    ExplicitTop = 160
     object pnlButtons: TPanel
       Left = 333
       Top = 1
@@ -342,7 +322,7 @@ object frmEditorSettings: TfrmEditorSettings
     Filter = 'Ausf'#252'hrbare Dateien (*.exe)|*.exe|Alle Dateien (*.*)|*.*'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Title = 'Editor-Datei ausw'#228'hlen'
-    Left = 12
-    Top = 163
+    Left = 89
+    Top = 35
   end
 end

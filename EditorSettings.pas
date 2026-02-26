@@ -4,15 +4,15 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, IniFiles, ConverterConst;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, IniFiles, ShellAPI, System.IOUtils,
+  ConverterConst;
 
 type
   TEditorProfile = class
     public
-      Name      : String;
-      Path      : String;
-      Parameter : String;
-      isActive  : boolean;
+      Name     : String;
+      Path     : String;
+      isActive : boolean;
   end;
 
 type
@@ -32,10 +32,8 @@ type
     Splitter1: TSplitter;
     lblName: TLabel;
     lblPath: TLabel;
-    lblParameter: TLabel;
     edtName: TEdit;
     edtPath: TEdit;
-    edtParameter: TEdit;
     chkUseEditor: TCheckBox;
     btnTestEditor: TButton;
     btnEditorButtons: TPanel;
@@ -48,9 +46,11 @@ type
     procedure btnAddClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
     procedure btnSelectPathClick(Sender: TObject);
+    procedure btnTestEditorClick(Sender: TObject);
   private
     procedure LoadEditorList;
     procedure LoadEditorSettings;
+    procedure CreateTestFile(var sFile: String);
   public
     EditorsFile: TIniFile;
     constructor Create(AOwner: TComponent; var AEditorsFile: TIniFile); reintroduce;
@@ -83,10 +83,9 @@ begin
 
   eProfile := TEditorProfile.Create;
   with eProfile do begin
-    Name      := sName;
-    Path      := '';
-    Parameter := '%File%';
-    isActive  := False;
+    Name     := sName;
+    Path     := '';
+    isActive := False;
   end;
 
   lbxEditors.Items.AddObject(eProfile.Name, eProfile);
@@ -129,6 +128,76 @@ begin
   if (dlgOpen.Execute) then
     edtPath.Text := dlgOpen.FileName
   ;
+end;
+
+procedure TfrmEditorSettings.btnTestEditorClick(Sender: TObject);
+var
+  sTempFile : String;
+  hRes : HINST;
+begin
+  //Falls kein Systembefehl - Pfad prüfen
+  if (ExtractFilePath(edtPath.Text) <> '') and (not FileExists(edtPath.Text)) then begin
+    MessageDlg('Datei existiert nicht:' + CRLF + edtPath.Text, mtError, [mbOK], 0);
+    Exit;
+  end;
+
+  //Temp. Test-Datei erzeugen
+  CreateTestFile(sTempFile);
+
+  //Datei im Editor öffnen
+  hRes := ShellExecute(
+    Handle,
+    'open',
+    PChar(edtPath.Text),
+    PChar('"' + sTempFile + '"'),
+    nil,
+    SW_SHOWNORMAL
+  );
+
+  //Fehlerfall anzeigen
+  if (hRes <= 32) then
+    MessageDlg(
+      'Editor konnte nicht gestartet werden.' + CR + SysErrorMessage(GetLastError),
+      mtError,
+      [mbOK],
+      0
+    )
+  ;
+end;
+
+procedure TfrmEditorSettings.CreateTestFile(var sFile: String);
+var
+  sProgramPath : String;
+begin
+  sProgramPath := TPath.Combine(GetEnvironmentVariable('APPDATA'), PROGRAMM_NAME);
+  if (not ForceDirectories(sProgramPath)) then
+    //Falls das nicht geht, dann im Verzeichnis der Exe
+    sProgramPath := ExtractFilePath(Application.ExeName)
+  ;
+  sFile := TPath.Combine(sProgramPath, 'Fx_EditorTest.sql');
+
+  TFile.WriteAllText(
+    sFile,
+    '--Testdatei für den Editor'                                  + CRLF +
+    'BEGIN'                                                       + CRLF +
+    '  DECLARE varDB_Name LONG VARCHAR;'                          + CRLF + CRLF +
+
+    '  SELECT'                                                    + CRLF +
+    '    DB_PROPERTY(''Name'')'                                   + CRLF +
+    '  INTO'                                                      + CRLF +
+    '    varDB_Name'                                              + CRLF +
+    '  ;'                                                         + CRLF + CRLF +
+
+    '  MESSAGE ''Aktuelle Datenbank: '' || varDB_Name TO CLIENT;' + CRLF + CRLF +
+
+    '  IF (varDB_Name = ''Production'') THEN'                     + CRLF +
+    '    EXECUTE IMMEDIATE ''DROP DATABASE '' || varDB_Name;'     + CRLF +
+    '    MESSAGE ''Ups ...'' TO CLIENT;'                          + CRLF +
+    '  END IF;'                                                   + CRLF + CRLF +
+
+    '  MESSAGE ''System signed by <CSX>'' TO CLIENT;'             + CRLF +
+    'END;'                                                        + CRLF
+  );
 end;
 
 constructor TfrmEditorSettings.Create(AOwner: TComponent; var AEditorsFile: TIniFile);
@@ -185,7 +254,6 @@ begin
       with eProfile do begin
         Name      := sEditorName;
         Path      := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PATH, '');
-        Parameter := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PARAMETER, '');
         isActive  := SameText(sActiveEditor, sSectionName);
         if (isActive) then
           sDisplayName := SELECTED_EDITOR_SYMBOL + ' ' + sDisplayName
@@ -212,16 +280,14 @@ begin
   if (lbxEditors.ItemIndex >= 0) then begin
     eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
     with eProfile do begin
-      edtName.Text      := Name;
-      edtPath.Text      := Path;
-      edtParameter.Text := Parameter;
+      edtName.Text := Name;
+      edtPath.Text := Path;
       chkUseEditor.Checked := isActive;
     end;
   end
   else begin
-    edtName.Text      := '';
-    edtPath.Text      := '';
-    edtParameter.Text := '';
+    edtName.Text := '';
+    edtPath.Text := '';
     chkUseEditor.Checked := False;
   end;
   btnDelete.Enabled := not chkUseEditor.Checked;

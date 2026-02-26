@@ -741,7 +741,7 @@ var
   sPath: String;
 begin
   //Versuchen die Config standardmäßig in %APPDATA% zu speichern
-  sPath := TPath.Combine(GetEnvironmentVariable('APPDATA'), frmSQLFunctionConverter.Caption);
+  sPath := TPath.Combine(GetEnvironmentVariable('APPDATA'), PROGRAMM_NAME);
   if (not ForceDirectories(sPath)) then
     //Falls das nicht geht, dann im Verzeichnis der Exe
     sPath := ExtractFilePath(Application.ExeName)
