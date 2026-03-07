@@ -19,7 +19,7 @@
     - Zeilen ohne Daten (Nur Kommentare)
     - IN @.. ; OUT @...
       (Wird aber aktuell wie ein Input-Parameter behandelt)
-    - GridParameterToOutput -> Hier weiter
+    - GridParameterToOutput
       - OUT-Parameter => Mit dem Handling weiter machen!!
 
    Should

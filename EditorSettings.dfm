@@ -2,7 +2,7 @@ object frmEditorSettings: TfrmEditorSettings
   Left = 0
   Top = 0
   Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen...'
-  ClientHeight = 164
+  ClientHeight = 185
   ClientWidth = 506
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,14 +16,13 @@ object frmEditorSettings: TfrmEditorSettings
     Left = 0
     Top = 0
     Width = 506
-    Height = 131
+    Height = 152
     Align = alClient
     TabOrder = 0
-    ExplicitHeight = 160
-    object Splitter1: TSplitter
+    object splMain: TSplitter
       Left = 131
       Top = 1
-      Height = 129
+      Height = 150
       ExplicitLeft = 173
       ExplicitTop = -4
       ExplicitHeight = 186
@@ -32,15 +31,14 @@ object frmEditorSettings: TfrmEditorSettings
       Left = 1
       Top = 1
       Width = 130
-      Height = 129
+      Height = 150
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 158
       object lbxEditors: TListBox
         Left = 1
         Top = 31
         Width = 128
-        Height = 73
+        Height = 94
         Align = alClient
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
@@ -54,7 +52,6 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         TabOrder = 0
         OnClick = lbxEditorsClick
-        ExplicitHeight = 102
       end
       object pnlEditorsHeader: TPanel
         Left = 1
@@ -84,12 +81,11 @@ object frmEditorSettings: TfrmEditorSettings
       end
       object btnEditorButtons: TPanel
         Left = 1
-        Top = 104
+        Top = 125
         Width = 128
         Height = 24
         Align = alBottom
         TabOrder = 2
-        ExplicitTop = 133
         object btnAdd: TButton
           Left = 1
           Top = 1
@@ -128,14 +124,13 @@ object frmEditorSettings: TfrmEditorSettings
       Left = 134
       Top = 1
       Width = 371
-      Height = 129
+      Height = 150
       Align = alClient
       TabOrder = 1
       TabStop = True
-      ExplicitLeft = 135
       DesignSize = (
         371
-        129)
+        150)
       object lblName: TLabel
         Left = 8
         Top = 40
@@ -190,9 +185,12 @@ object frmEditorSettings: TfrmEditorSettings
       end
       object edtName: TEdit
         Left = 88
-        Top = 37
+        Top = 36
         Width = 275
         Height = 22
+        Hint = 
+          'Erlaubte Zeichen:'#13#10'A-Z, a-z, 0-9 und + - _ ! ? % $ & < > # * ~ (' +
+          ' )'
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
@@ -201,7 +199,10 @@ object frmEditorSettings: TfrmEditorSettings
         Font.Style = []
         MaxLength = 25
         ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 1
+        OnExit = edtNameExit
       end
       object edtPath: TEdit
         Left = 88
@@ -216,6 +217,7 @@ object frmEditorSettings: TfrmEditorSettings
         Font.Style = []
         ParentFont = False
         TabOrder = 2
+        OnExit = edtPathExit
       end
       object chkUseEditor: TCheckBox
         Left = 5
@@ -233,11 +235,12 @@ object frmEditorSettings: TfrmEditorSettings
         ParentShowHint = False
         ShowHint = False
         TabOrder = 4
+        OnClick = chkUseEditorClick
       end
       object btnTestEditor: TButton
-        Left = 286
-        Top = 96
-        Width = 77
+        Left = 290
+        Top = 120
+        Width = 75
         Height = 25
         Anchors = [akTop, akRight]
         Caption = 'Testen'
@@ -272,12 +275,11 @@ object frmEditorSettings: TfrmEditorSettings
   end
   object pnlBot: TPanel
     Left = 0
-    Top = 131
+    Top = 152
     Width = 506
     Height = 33
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 160
     object pnlButtons: TPanel
       Left = 333
       Top = 1

@@ -1,11 +1,10 @@
 ﻿unit EditorSettings;
-
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, IniFiles, ShellAPI, System.IOUtils,
-  ConverterConst;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.UITypes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, IniFiles, ShellAPI,
+  System.IOUtils, System.RegularExpressions, ConverterConst;
 
 type
   TEditorProfile = class
@@ -29,7 +28,7 @@ type
     pnlEditorsHeader: TPanel;
     lblEditors: TLabel;
     lblProperties: TLabel;
-    Splitter1: TSplitter;
+    splMain: TSplitter;
     lblName: TLabel;
     lblPath: TLabel;
     edtName: TEdit;
@@ -47,10 +46,15 @@ type
     procedure btnDeleteClick(Sender: TObject);
     procedure btnSelectPathClick(Sender: TObject);
     procedure btnTestEditorClick(Sender: TObject);
+    procedure edtNameExit(Sender: TObject);
+    procedure edtPathExit(Sender: TObject);
+    procedure chkUseEditorClick(Sender: TObject);
   private
+    isRefreshing: boolean;
+    procedure CreateTestFile(var sFile: String);
     procedure LoadEditorList;
     procedure LoadEditorSettings;
-    procedure CreateTestFile(var sFile: String);
+    procedure RefreshEditorList;
   public
     EditorsFile: TIniFile;
     constructor Create(AOwner: TComponent; var AEditorsFile: TIniFile); reintroduce;
@@ -67,19 +71,33 @@ implementation
 
 procedure TfrmEditorSettings.btnAddClick(Sender: TObject);
 var
-  eProfile : TEditorProfile;
-  sBaseName: String;
-  sName    : String;
-  iCounter : integer;
+  eProfile  : TEditorProfile;
+  sBaseName : String;
+  sName     : String;
+  ii        : integer;
+  iCounter  : integer;
+  nameExists: boolean;
 begin
-  sBaseName := 'Neuer Editor';
-  sName     := sBaseName;
-  iCounter  := 1;
+  isRefreshing := True;
+  sBaseName := 'Editor';
+  sName := sBaseName;
+  iCounter := 1;
 
-  while lbxEditors.Items.IndexOf(sName) >= 0 do begin
-    Inc(iCounter);
-    sName := sBaseName + IntToStr(iCounter);
-  end;
+  repeat
+    nameExists := False;
+    for ii := 0 to lbxEditors.Count - 1 do begin
+      if (SameText(TEditorProfile(lbxEditors.Items.Objects[ii]).Name, sName)) then begin
+        nameExists := True;
+        Break;
+      end;
+    end;
+
+    if (nameExists) then begin
+      inc(iCounter);
+      sName := sBaseName + IntToStr(iCounter);
+    end;
+
+  until not nameExists;
 
   eProfile := TEditorProfile.Create;
   with eProfile do begin
@@ -92,6 +110,7 @@ begin
   lbxEditors.ItemIndex := lbxEditors.Count - 1;
   LoadEditorSettings;
   edtName.SetFocus;
+  isRefreshing := False;
 end;
 
 procedure TfrmEditorSettings.btnDeleteClick(Sender: TObject);
@@ -135,7 +154,14 @@ var
   sTempFile : String;
   hRes : HINST;
 begin
-  //Falls kein Systembefehl - Pfad prüfen
+  //Pfad prüfen
+  if (Trim(edtPath.Text) = '') then begin
+    MessageDlg('Pfad darf nicht leer sein!', mtError, [mbOK], 0);
+    edtPath.SetFocus;
+    Exit;
+  end;
+
+  //Falls Pfad nicht leer & kein Systembefehl ist, dann Pfad prüfen
   if (ExtractFilePath(edtPath.Text) <> '') and (not FileExists(edtPath.Text)) then begin
     MessageDlg('Datei existiert nicht:' + CRLF + edtPath.Text, mtError, [mbOK], 0);
     Exit;
@@ -157,7 +183,7 @@ begin
   //Fehlerfall anzeigen
   if (hRes <= 32) then
     MessageDlg(
-      'Editor konnte nicht gestartet werden.' + CR + SysErrorMessage(GetLastError),
+      'Editor konnte nicht gestartet werden!' + CR + SysErrorMessage(GetLastError),
       mtError,
       [mbOK],
       0
@@ -200,6 +226,73 @@ begin
   );
 end;
 
+procedure TfrmEditorSettings.edtNameExit(Sender: TObject);
+var
+  eProfile : TEditorProfile;
+  ii    : integer;
+  sName : string;
+begin
+  sName := Trim(TRegEx.Replace(edtName.Text, '[^a-zA-Z0-9+\-_!?%$&<>#*~()]', ''));
+  if (sName = '') then begin
+    MessageDlg('Bezeichnung darf nicht leer sein!', mtError, [mbOK], 0);
+    edtName.SetFocus;
+    Exit;
+  end;
+
+  //Doppelte Einträge prüfen
+  for ii := 0 to lbxEditors.Count - 1 do begin
+    if (ii = lbxEditors.ItemIndex) then
+      Continue
+    ;
+
+    eProfile := TEditorProfile(lbxEditors.Items.Objects[ii]);
+    if SameText(eProfile.Name, sName) then begin
+      MessageDlg('Bezeichnung existiert bereits!', mtError, [mbOK], 0);
+      edtName.SetFocus;
+      Exit;
+    end;
+  end;
+
+  edtName.Text := sName;
+  eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
+  eProfile.Name := sName;
+  RefreshEditorList;
+end;
+
+procedure TfrmEditorSettings.edtPathExit(Sender: TObject);
+var
+  eProfile : TEditorProfile;
+begin
+  eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
+  eProfile.Path := edtPath.Text;
+end;
+
+procedure TfrmEditorSettings.chkUseEditorClick(Sender: TObject);
+var
+  eProfile : TEditorProfile;
+  ii : integer;
+begin
+  if (chkUseEditor.Checked) then begin
+    //Alle Profile deaktiveren
+    for ii := 0 to lbxEditors.Count - 1 do begin
+      eProfile := TEditorProfile(lbxEditors.Items.Objects[ii]);
+      eProfile.isActive := False;
+    end;
+
+    //Aktuelles aktivieren
+    eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
+    eProfile.isActive := chkUseEditor.Checked;
+
+    RefreshEditorList;
+    btnDelete.Enabled := not eProfile.isActive;
+  end;
+
+  if (not chkUseEditor.Checked and not isRefreshing) then begin
+    chkUseEditor.Checked := True;
+    Exit;
+  end;
+end;
+
 constructor TfrmEditorSettings.Create(AOwner: TComponent; var AEditorsFile: TIniFile);
 begin
   inherited Create(AOwner);
@@ -232,6 +325,7 @@ var
   sDisplayName  : String;
   iLbxItemIndex : integer;
 begin
+  isRefreshing := True;
   lbxEditors.Clear;
   iLbxItemIndex := -1;
   slSections := TStringlist.Create;
@@ -270,6 +364,30 @@ begin
     end;
   finally
     slSections.Free;
+    isRefreshing := False;
+  end;
+end;
+
+procedure TfrmEditorSettings.RefreshEditorList;
+var
+  eProfile : TEditorProfile;
+  ii       : integer;
+  sDisplayName : String;
+begin
+  isRefreshing := True;
+  lbxEditors.Items.BeginUpdate;
+  try
+    for ii := 0 to lbxEditors.Items.Count - 1 do begin
+      eProfile := TEditorProfile(lbxEditors.Items.Objects[ii]);
+      sDisplayName := eProfile.Name;
+      if (eProfile.isActive) then
+        sDisplayName := SELECTED_EDITOR_SYMBOL + ' ' + sDisplayName
+      ;
+      lbxEditors.Items[ii] := sDisplayName;
+    end;
+  finally
+    lbxEditors.Items.EndUpdate;
+    isRefreshing := False;
   end;
 end;
 
@@ -277,6 +395,7 @@ procedure TfrmEditorSettings.LoadEditorSettings;
 var
   eProfile : TEditorProfile;
 begin
+  isRefreshing := True;
   if (lbxEditors.ItemIndex >= 0) then begin
     eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
     with eProfile do begin
@@ -291,6 +410,7 @@ begin
     chkUseEditor.Checked := False;
   end;
   btnDelete.Enabled := not chkUseEditor.Checked;
+  isRefreshing := False;
 end;
 
 end.
