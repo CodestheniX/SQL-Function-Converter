@@ -76,9 +76,11 @@ type
     function GetLineWithoutComment(sLine: String): String;
     function GetOutParameterList: TStringlist;
     function GetConfigFile(sFilename: String): String;
+    function FindEditorExe(const sExeName: string): string;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
+    procedure InitEditors;
     procedure ParameterToGrid;
     procedure GridParameterToOutput;
     procedure ExtractComment(var sParameter, sComment: String);
@@ -195,6 +197,89 @@ begin
       Row := 1
     ;
     SetFocus;
+  end;
+end;
+
+//#DankeGemini...
+function TfrmSQLFunctionConverter.FindEditorExe(const sExeName: String): String;
+var
+  slBaseFolders: TStringList;
+  sFolder, sFoundPath: string;
+
+  function SearchInSubDirs(const sRoot, sTargetExe: String): String;
+  var
+    SR: TSearchRec;
+  begin
+    Result := '';
+    //1. Direkt im Root prüfen
+    if FileExists(sRoot + '\' + sTargetExe) then
+      Exit(sRoot + '\' + sTargetExe)
+    ;
+
+    //2.In den Unterordnern suchen (nur 1 Ebene tief für Performance)
+    if FindFirst(sRoot + '\*', faDirectory, SR) = 0 then begin
+      try
+        repeat
+          if (SR.Attr and faDirectory <> 0) and (SR.Name <> '.') and (SR.Name <> '..') then begin
+            if FileExists(sRoot + '\' + SR.Name + '\' + sTargetExe) then begin
+              Result := sRoot + '\' + SR.Name + '\' + sTargetExe;
+              Break;
+            end;
+          end;
+        until FindNext(SR) <> 0;
+      finally
+        FindClose(SR);
+      end;
+    end;
+  end;
+
+begin
+  Result := '';
+  slBaseFolders := TStringList.Create;
+  try
+    slBaseFolders.Add(GetEnvironmentVariable('WinDir') + '\System32');
+    slBaseFolders.Add(GetEnvironmentVariable('ProgramW6432'));
+    slBaseFolders.Add(GetEnvironmentVariable('ProgramFiles(x86)'));
+    slBaseFolders.Add(GetEnvironmentVariable('LocalAppData') + '\Programs');
+
+    for sFolder in slBaseFolders do begin
+      if (sFolder <> '') and (DirectoryExists(sFolder)) then begin
+        sFoundPath := SearchInSubDirs(sFolder, sExeName);
+        if (sFoundPath <> '') then begin
+          Result := sFoundPath;
+          Break;
+        end;
+      end;
+    end;
+  finally
+    slBaseFolders.Free;
+  end;
+end;
+
+procedure TfrmSQLFunctionConverter.InitEditors;
+const
+  //Liste aller initialen Editoren & der passenden Bezeichnungen
+  EDITOR_EXES     : array[0..2] of String = ('notepad.exe', 'notepad++.exe', 'code.exe');
+  EDITOR_INI_NAMES: array[0..2] of String = ('Editor_Notepad', 'Editor_Notepad++', 'Editor_vsCode');
+var
+  ii: integer;
+  sFoundPath: string;
+  isStandardSet: boolean;
+begin
+  if not FileExists(EditorsFile.FileName) then begin
+    isStandardSet := False;
+    //Definierte Editoren durchsuchen
+    for ii := Low(EDITOR_EXES) to High(EDITOR_EXES) do begin
+      sFoundPath := FindEditorExe(EDITOR_EXES[ii]);
+      if (sFoundPath <> '') then begin
+        //Ersten Editor als Standard setzen
+        if (not isStandardSet) then begin
+          EditorsFile.WriteString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, EDITOR_INI_NAMES[ii]);
+          isStandardSet := True;
+        end;
+        EditorsFile.WriteString(EDITOR_INI_NAMES[ii], EDITORS_KEY_PATH, sFoundPath);
+      end;
+    end;
   end;
 end;
 
@@ -870,9 +955,12 @@ end;
 
 procedure TfrmSQLFunctionConverter.FormCreate(Sender: TObject);
 begin
-  //ConfigFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
+  //Konfigurationsdateien erstellen
   ConfigFile := TIniFile.Create(GetConfigFile(CONFIG_FILENAME));
   EditorsFile:= TIniFile.Create(GetConfigFile(EDITORS_FILENAME));
+
+  //Editoren initialisieren
+  InitEditors;
 
   //Style laden
   TStyleManager.TrySetStyle(ConfigFile.ReadString(CONFIG_SEC_FORM, CONFIG_KEY_STYLE, ''), False);

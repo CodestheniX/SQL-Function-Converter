@@ -1,4 +1,5 @@
-﻿unit EditorSettings;
+﻿{ TODO : Next: Speichern der Listbox in der Ini + Init neuer Ini-Datei}
+unit EditorSettings;
 interface
 
 uses
