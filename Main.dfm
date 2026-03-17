@@ -139,7 +139,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
-        OnDblClick = memOutputDblClick
       end
       object pnlOutputButton: TPanel
         Left = 1
@@ -148,13 +147,13 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        object btnCopy: TButton
+        object btnOpenOutput: TButton
           Left = 1
           Top = 1
           Width = 446
           Height = 39
           Align = alClient
-          Caption = 'Kopieren'
+          Caption = 'Im Editor '#246'ffnen'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -19
@@ -162,7 +161,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
           Font.Style = [fsBold]
           ParentFont = False
           TabOrder = 0
-          OnClick = btnCopyClick
+          OnClick = btnOpenOutputClick
         end
       end
     end

@@ -23,7 +23,7 @@ type
     pnlInputButton: TPanel;
     btnConvert: TButton;
     pnlOutputButton: TPanel;
-    btnCopy: TButton;
+    btnOpenOutput: TButton;
     pnlParameterButton: TPanel;
     btnRefresh: TButton;
     menMain: TMainMenu;
@@ -51,7 +51,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure mitLoadScriptClick(Sender: TObject);
-    procedure btnCopyClick(Sender: TObject);
+    procedure btnOpenOutputClick(Sender: TObject);
     procedure mitStyleClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure grdParameterSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
@@ -66,7 +66,6 @@ type
     procedure mitClearConfigClick(Sender: TObject);
     procedure grdParameterDblClick(Sender: TObject);
     procedure mitSelectOutputEditorClick(Sender: TObject);
-    procedure memOutputDblClick(Sender: TObject);
   private
     ConfigFile : TIniFile; //Konfigurationen für die Main-Form
     EditorsFile: TIniFile; //Hinterlegte Editoren & aktiver Editor
@@ -439,43 +438,6 @@ begin
   end;
 end;
 
-procedure TfrmSQLFunctionConverter.memOutputDblClick(Sender: TObject);
-var
-  hRes: HINST;
-  sOutputFile  : String;
-  sActiveEditor: String;
-begin
-  //Beim Doppelklick die Ausgabe im Standard-Editor öffnen
-  sActiveEditor := GetActiveEditorPath;
-  if (Trim(sActiveEditor) = '') then begin
-    MessageDlg('Standard-Editor nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0);
-    Exit;
-  end;
-
-  sOutputFile := GetAppFilePath(OUTPUT_FILENAME);
-  TFile.WriteAllText(sOutputFile, memOutput.Lines.Text);
-
-  //Datei im Editor öffnen
-  hRes := ShellExecute(
-    Handle,
-    'open',
-    PChar(sActiveEditor),
-    PChar('"' + sOutputFile + '"'),
-    nil,
-    SW_SHOWNORMAL
-  );
-
-  //Fehlerfall anzeigen
-  if (hRes <= 32) then
-    MessageDlg(
-      'Editor konnte nicht gestartet werden!' + CR + SysErrorMessage(GetLastError),
-      mtError,
-      [mbOK],
-      0
-    )
-  ;
-end;
-
 procedure TfrmSQLFunctionConverter.mitAdjustColumnClick(Sender: TObject);
 begin
   AdjustColumn(grdParameter.Col);
@@ -756,19 +718,52 @@ begin
   ;
 end;
 
-procedure TfrmSQLFunctionConverter.btnCopyClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.btnOpenOutputClick(Sender: TObject);
+var
+  hRes: HINST;
+  sOutputFile  : String;
+  sActiveEditor: String;
 begin
-  with Clipboard do begin
-    Clear;
-    AsText := memOutput.Text;
+  //Ausgabe im Standard-Editor öffnen
+  sActiveEditor := GetActiveEditorPath;
+  if (Trim(sActiveEditor) = '') then begin
+    MessageDlg('Standard-Editor nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0);
+    Exit;
   end;
+
+  sOutputFile := GetAppFilePath(OUTPUT_FILENAME);
+  TFile.WriteAllText(sOutputFile, memOutput.Lines.Text);
+
+  //Datei im Editor öffnen
+  hRes := ShellExecute(
+    Handle,
+    'open',
+    PChar(sActiveEditor),
+    PChar('"' + sOutputFile + '"'),
+    nil,
+    SW_SHOWNORMAL
+  );
+
+  //Fehlerfall anzeigen
+  if (hRes <= 32) then
+    MessageDlg(
+      'Editor konnte nicht gestartet werden!' + CR + SysErrorMessage(GetLastError),
+      mtError,
+      [mbOK],
+      0
+    )
+  ;
+//  with Clipboard do begin
+//    Clear;
+//    AsText := memOutput.Text;
+//  end;
 end;
 
 procedure TfrmSQLFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
   //Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
-  btnCopy.SetFocus;
+  btnOpenOutput.SetFocus;
 end;
 
 function TfrmSQLFunctionConverter.GetOutParameterList: TStringlist;
