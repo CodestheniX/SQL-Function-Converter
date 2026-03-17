@@ -5,7 +5,7 @@
     -
 
    Should
-    - Error-Handling beim Konvert
+    -
 
    Could
     - Doppelklick => Editor
@@ -18,15 +18,15 @@
     - GridToParameter
     - Zeilen ohne Daten (Nur Kommentare)
     - IN @.. ; OUT @...
-      (Wird aber aktuell wie ein Input-Parameter behandelt)
     - GridParameterToOutput
-      - OUT-Parameter => Mit dem Handling weiter machen!!
 
    Should
     - Shortcuts für die Buttons
     - Enter im Grid: Zeile runter
     - Nach Konvert -> 3. Column markieren
     - Größe speichern und reseten
+    - Error-Handling beim Konvert
+      => Raus damit. Keine Ahnung, was damit gemeint war
 
    Could
     - Kommentare speichern und dann anzeigen
@@ -75,13 +75,17 @@ const
   //Section: Editor_...
   EDITORS_SEC_EDITOR_X  = 'Editor_';
   EDITORS_KEY_PATH      = 'Path';
-  EDITORS_KEY_PARAMETER = 'Parameter';
+  //EDITORS_KEY_PARAMETER = 'Parameter';
+
+
+  //*** Dateinamen für SQL-Dateien
+  OUTPUT_FILENAME      = 'Fx_Output.sql';
+  TEST_EDITOR_FILENAME = 'Fx_EditorTest.sql';
 
 
   //*** Ermittlung des Dateinamen
-  CREATE_FUNCTION     = 'CREATE FUNCTION ';
-  CREATE_PROCEDURE    = 'CREATE PROCEDURE ';
-
+  CREATE_FUNCTION  = 'CREATE FUNCTION ';
+  CREATE_PROCEDURE = 'CREATE PROCEDURE ';
 
   //*** Parameter (Kopf)
   PARAMETER_START     = '@';

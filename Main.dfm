@@ -139,6 +139,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
+        OnDblClick = memOutputDblClick
       end
       object pnlOutputButton: TPanel
         Left = 1

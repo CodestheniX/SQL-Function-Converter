@@ -1,4 +1,4 @@
-﻿{ TODO : Next: Speichern der Listbox in der Ini + Init neuer Ini-Datei}
+﻿{ TODO : Next: Speichern der Listbox in der Ini}
 unit EditorSettings;
 interface
 
@@ -201,7 +201,7 @@ begin
     //Falls das nicht geht, dann im Verzeichnis der Exe
     sProgramPath := ExtractFilePath(Application.ExeName)
   ;
-  sFile := TPath.Combine(sProgramPath, 'Fx_EditorTest.sql');
+  sFile := TPath.Combine(sProgramPath, TEST_EDITOR_FILENAME);
 
   TFile.WriteAllText(
     sFile,

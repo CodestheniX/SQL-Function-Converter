@@ -66,6 +66,7 @@ type
     procedure mitClearConfigClick(Sender: TObject);
     procedure grdParameterDblClick(Sender: TObject);
     procedure mitSelectOutputEditorClick(Sender: TObject);
+    procedure memOutputDblClick(Sender: TObject);
   private
     ConfigFile : TIniFile; //Konfigurationen für die Main-Form
     EditorsFile: TIniFile; //Hinterlegte Editoren & aktiver Editor
@@ -75,7 +76,8 @@ type
     function GetOffset(sText: String; checkDatatype: boolean): integer;
     function GetLineWithoutComment(sLine: String): String;
     function GetOutParameterList: TStringlist;
-    function GetConfigFile(sFilename: String): String;
+    function GetAppFilePath(sFilename: String): String;
+    function GetActiveEditorPath: String;
     function FindEditorExe(const sExeName: string): string;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
@@ -437,6 +439,43 @@ begin
   end;
 end;
 
+procedure TfrmSQLFunctionConverter.memOutputDblClick(Sender: TObject);
+var
+  hRes: HINST;
+  sOutputFile  : String;
+  sActiveEditor: String;
+begin
+  //Beim Doppelklick die Ausgabe im Standard-Editor öffnen
+  sActiveEditor := GetActiveEditorPath;
+  if (Trim(sActiveEditor) = '') then begin
+    MessageDlg('Standard-Editor nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0);
+    Exit;
+  end;
+
+  sOutputFile := GetAppFilePath(OUTPUT_FILENAME);
+  TFile.WriteAllText(sOutputFile, memOutput.Lines.Text);
+
+  //Datei im Editor öffnen
+  hRes := ShellExecute(
+    Handle,
+    'open',
+    PChar(sActiveEditor),
+    PChar('"' + sOutputFile + '"'),
+    nil,
+    SW_SHOWNORMAL
+  );
+
+  //Fehlerfall anzeigen
+  if (hRes <= 32) then
+    MessageDlg(
+      'Editor konnte nicht gestartet werden!' + CR + SysErrorMessage(GetLastError),
+      mtError,
+      [mbOK],
+      0
+    )
+  ;
+end;
+
 procedure TfrmSQLFunctionConverter.mitAdjustColumnClick(Sender: TObject);
 begin
   AdjustColumn(grdParameter.Col);
@@ -475,7 +514,7 @@ var
 begin
   if (GetKeyState(VK_SHIFT) < 0) then begin
     //Bei gedrückter SHIFT-Taste die Editorsettings im Editor öffnen
-    if (FileExists(ConfigFile.FileName)) then
+    if (FileExists(EditorsFile.FileName)) then
       ShellExecute(
         0,
         'open',
@@ -485,7 +524,6 @@ begin
         SW_SHOWNORMAL
       )
     else
-      { TODO : Anlage der Standard-Datei, falls es keine gibt }
       MessageDlg('Editorsettings nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0)
     ;
   end
@@ -821,7 +859,21 @@ begin
   end;
 end;
 
-function TfrmSQLFunctionConverter.GetConfigFile(sFilename: String): String;
+function TfrmSQLFunctionConverter.GetActiveEditorPath: String;
+var
+  sActiveEditor: String;
+begin
+  Result := '';
+  if not Assigned(EditorsFile) or (not FileExists(EditorsFile.FileName)) then
+    Exit
+  ;
+  sActiveEditor := EditorsFile.ReadString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, '');
+  if (Trim(sActiveEditor) <> '') then
+    Result := EditorsFile.ReadString(sActiveEditor, EDITORS_KEY_PATH, '')
+  ;
+end;
+
+function TfrmSQLFunctionConverter.GetAppFilePath(sFilename: String): String;
 var
   sPath: String;
 begin
@@ -956,8 +1008,8 @@ end;
 procedure TfrmSQLFunctionConverter.FormCreate(Sender: TObject);
 begin
   //Konfigurationsdateien erstellen
-  ConfigFile := TIniFile.Create(GetConfigFile(CONFIG_FILENAME));
-  EditorsFile:= TIniFile.Create(GetConfigFile(EDITORS_FILENAME));
+  ConfigFile := TIniFile.Create(GetAppFilePath(CONFIG_FILENAME));
+  EditorsFile:= TIniFile.Create(GetAppFilePath(EDITORS_FILENAME));
 
   //Editoren initialisieren
   InitEditors;
