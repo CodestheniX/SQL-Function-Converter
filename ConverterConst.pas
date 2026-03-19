@@ -5,11 +5,10 @@
     -
 
    Should
-    - Error-Handling beim Konvert
+    -
 
    Could
-    - Doppelklick => Editor
-    => 27.01.26 - Hier weiter machen!
+    -
 }
 
 
@@ -18,20 +17,22 @@
     - GridToParameter
     - Zeilen ohne Daten (Nur Kommentare)
     - IN @.. ; OUT @...
-      (Wird aber aktuell wie ein Input-Parameter behandelt)
-    - GridParameterToOutput -> Hier weiter
-      - OUT-Parameter => Mit dem Handling weiter machen!!
+    - GridParameterToOutput
 
    Should
     - Shortcuts für die Buttons
     - Enter im Grid: Zeile runter
     - Nach Konvert -> 3. Column markieren
     - Größe speichern und reseten
+    - Error-Handling beim Konvert
+      => Raus damit. Keine Ahnung, was damit gemeint war
 
    Could
     - Kommentare speichern und dann anzeigen
     - Buzzwords farblich kennzeichnen
       => Lassen wir weg - Die Memo kann keinen Richtext und TSynEdit ist nicht Style-aware...
+    - Doppelklick => Editor
+    => 27.01.26 - Hier weiter machen!
 }
 
 interface
@@ -48,24 +49,44 @@ const
   MIN_COL_WIDTH           = 110;
   MIN_COL_WIDTH_DIRECTION =  40;
 
-  //*** Sections & Keys der Konfiguratipn (Ini-Datei)
+
+  //*** Fx_Settings.ini: Sections & Keys der Konfiguration
+  CONFIG_FILENAME = 'Fx_Settings.ini';
   //Section: Form
-  INI_SEC_FORM              = 'Form';
-  INI_KEY_STYLE             = 'Style';
-  INI_KEY_HEIGHT            = 'Height';
-  INI_KEY_WIDTH             = 'Width';
-  INI_KEY_SHOWCOMMENTS      = 'ShowComments';
-  INI_KEY_PNLINPUTWIDTH     = 'pnlInputWidth';
-  INI_KEY_PNLPARAMETERWIDTH = 'pnlParameterWidth';
-  INI_KEY_PNLOUTPUTWIDTH    = 'pnlOutputWidth';
+  CONFIG_SEC_FORM              = 'Form';
+  CONFIG_KEY_STYLE             = 'Style';
+  CONFIG_KEY_HEIGHT            = 'Height';
+  CONFIG_KEY_WIDTH             = 'Width';
+  CONFIG_KEY_SHOWCOMMENTS      = 'ShowComments';
+  CONFIG_KEY_PNLINPUTWIDTH     = 'pnlInputWidth';
+  CONFIG_KEY_PNLPARAMETERWIDTH = 'pnlParameterWidth';
+  CONFIG_KEY_PNLOUTPUTWIDTH    = 'pnlOutputWidth';
 
   //Section: Output
-  INI_SEC_OUTPUT         = 'Output';
-  INI_KEY_RETURNTOSELECT = 'ReturnToSelect';
+  CONFIG_SEC_OUTPUT         = 'Output';
+  CONFIG_KEY_RETURNTOSELECT = 'ReturnToSelect';
+
+
+  //*** Fx_Editors.ini: Sections & Keys der Editorsettings
+  EDITORS_FILENAME = 'Fx_Editors.ini';
+  //Section: Editor
+  EDITORS_SEC_EDITOR = 'Editor';
+  EDITORS_KEY_ACTIVE = 'Active';
+
+  //Section: Editor_...
+  EDITORS_SEC_EDITOR_X  = 'Editor_';
+  EDITORS_KEY_PATH      = 'Path';
+  //EDITORS_KEY_PARAMETER = 'Parameter';
+
+
+  //*** Dateinamen für SQL-Dateien
+  OUTPUT_FILENAME      = 'Fx_Output.sql';
+  TEST_EDITOR_FILENAME = 'Fx_EditorTest.sql';
+
 
   //*** Ermittlung des Dateinamen
-  CREATE_FUNCTION     = 'CREATE FUNCTION ';
-  CREATE_PROCEDURE    = 'CREATE PROCEDURE ';
+  CREATE_FUNCTION  = 'CREATE FUNCTION ';
+  CREATE_PROCEDURE = 'CREATE PROCEDURE ';
 
   //*** Parameter (Kopf)
   PARAMETER_START     = '@';
@@ -76,6 +97,7 @@ const
   DEFAULT_START       = ' DEFAULT ';
   DECLARE             = 'DECLARE';
 
+
   //*** Grid "Variablen"
   COL_DIRECTION = 0;
   COL_NAME      = 1;
@@ -83,9 +105,11 @@ const
   COL_VALUE     = 3;
   COL_COMMENT   = 4;
 
+
   //*** Sonstiges
-  CR    = #13;
-  CRLF  = #13#10;
+  CR   = #13;
+  CRLF = #13#10;
+  SELECTED_EDITOR_SYMBOL = '►';
 
 implementation
 

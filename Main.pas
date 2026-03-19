@@ -3,9 +3,10 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids, ClipBrd, IniFiles,
-  Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils, ShellAPI, ConverterConst;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.UITypes, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids,
+  ClipBrd, IniFiles, Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils, ShellAPI,
+  EditorSettings, ConverterConst;
 
 type
   TfrmSQLFunctionConverter = class(TForm)
@@ -22,7 +23,7 @@ type
     pnlInputButton: TPanel;
     btnConvert: TButton;
     pnlOutputButton: TPanel;
-    btnCopy: TButton;
+    btnOpenOutput: TButton;
     pnlParameterButton: TPanel;
     btnRefresh: TButton;
     menMain: TMainMenu;
@@ -44,12 +45,13 @@ type
     mitConvert: TMenuItem;
     mitRefresh: TMenuItem;
     N3: TMenuItem;
-    btnClearConfig: TMenuItem;
+    mitClearConfig: TMenuItem;
+    mitSelectOutputEditor: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure mitLoadScriptClick(Sender: TObject);
-    procedure btnCopyClick(Sender: TObject);
+    procedure btnOpenOutputClick(Sender: TObject);
     procedure mitStyleClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure grdParameterSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
@@ -61,20 +63,25 @@ type
     procedure grdParameterMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure mitReturnToSelectClick(Sender: TObject);
     procedure mitSaveOutputClick(Sender: TObject);
-    procedure btnClearConfigClick(Sender: TObject);
+    procedure mitClearConfigClick(Sender: TObject);
     procedure grdParameterDblClick(Sender: TObject);
+    procedure mitSelectOutputEditorClick(Sender: TObject);
   private
-    ConfigFile: TIniFile;
-    iLastRow  : integer;
-    iLastCol  : integer;
+    ConfigFile : TIniFile; //Konfigurationen für die Main-Form
+    EditorsFile: TIniFile; //Hinterlegte Editoren & aktiver Editor
+    iLastRow : integer;
+    iLastCol : integer;
     function AdjustColumn(iCol : integer): integer;
     function GetOffset(sText: String; checkDatatype: boolean): integer;
     function GetLineWithoutComment(sLine: String): String;
     function GetOutParameterList: TStringlist;
-    function GetConfigFile: String;
+    function GetAppFilePath(sFilename: String): String;
+    function GetActiveEditorPath: String;
+    function FindEditorExe(const sExeName: string): string;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
+    procedure InitEditors;
     procedure ParameterToGrid;
     procedure GridParameterToOutput;
     procedure ExtractComment(var sParameter, sComment: String);
@@ -100,12 +107,12 @@ var
   iTextWidth : integer;
 begin
   with grdParameter do begin
-    if iCol <> COL_DIRECTION then
+    if (iCol <> COL_DIRECTION) then
       iMaxWidth := MIN_COL_WIDTH
     else
       iMaxWidth := MIN_COL_WIDTH_DIRECTION
     ;
-    if RowCount > 0 then begin
+    if (RowCount > 0) then begin
       for iRow := 1 to RowCount -1 do begin
         iTextWidth := Canvas.TextWidth(Cells[iCol, iRow]) + GridLineWidth + 10;
         if (iTextWidth > iMaxWidth) then begin
@@ -126,7 +133,7 @@ var
 begin
   with grdParameter do begin
     //Setzen des Headers
-    if RowCount > 1 then
+    if (RowCount > 1) then
       FixedRows := 1
     ;
     //Anpassung der Spaltenbreiten an die Länge des Inhalts - Nur bis Wert
@@ -137,7 +144,7 @@ begin
     end;
 
     //Kommentar-Spalte fix setzen
-    if mitShowComments.Checked then begin
+    if (mitShowComments.Checked) then begin
       ColWidths[COL_COMMENT] := MIN_COL_WIDTH;
       iPanelWidth := iPanelWidth + ColWidths[COL_COMMENT];
     end;
@@ -147,11 +154,11 @@ begin
   end;
 end;
 
-procedure TfrmSQLFunctionConverter.btnClearConfigClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitClearConfigClick(Sender: TObject);
 begin
-  if GetKeyState(VK_SHIFT) < 0 then begin
+  if (GetKeyState(VK_SHIFT) < 0) then begin
     //Bei gedrückter SHIFT-Taste die Config im Editor öffnen (To-Know: Wird nach dem Verlassen des Programms überschrieben!)
-    if FileExists(ConfigFile.FileName) then
+    if (FileExists(ConfigFile.FileName)) then
       ShellExecute(
         0,
         'open',
@@ -167,8 +174,8 @@ begin
   else begin
     if (MessageDlg('Achtung | Soll die Konfiguration zurückgesetzt werden?' , TMsgDlgType.mtConfirmation, mbYesNo, 0) = mrYes) then begin
       with ConfigFile do begin
-        EraseSection(INI_SEC_FORM);
-        EraseSection(INI_SEC_OUTPUT);
+        EraseSection(CONFIG_SEC_FORM);
+        EraseSection(CONFIG_SEC_OUTPUT);
       end;
       TStyleManager.SetStyle(DEFAULT_STYLE);
       InitForm;
@@ -187,10 +194,93 @@ begin
   //Die Spalte "Wert" in der ersten Zeile selektieren
   with grdParameter do begin
     Col := COL_VALUE;
-    if RowCount > 1 then
+    if (RowCount > 1) then
       Row := 1
     ;
     SetFocus;
+  end;
+end;
+
+//#DankeGemini...
+function TfrmSQLFunctionConverter.FindEditorExe(const sExeName: String): String;
+var
+  slBaseFolders: TStringList;
+  sFolder, sFoundPath: string;
+
+  function SearchInSubDirs(const sRoot, sTargetExe: String): String;
+  var
+    SR: TSearchRec;
+  begin
+    Result := '';
+    //1. Direkt im Root prüfen
+    if FileExists(sRoot + '\' + sTargetExe) then
+      Exit(sRoot + '\' + sTargetExe)
+    ;
+
+    //2.In den Unterordnern suchen (nur 1 Ebene tief für Performance)
+    if FindFirst(sRoot + '\*', faDirectory, SR) = 0 then begin
+      try
+        repeat
+          if (SR.Attr and faDirectory <> 0) and (SR.Name <> '.') and (SR.Name <> '..') then begin
+            if FileExists(sRoot + '\' + SR.Name + '\' + sTargetExe) then begin
+              Result := sRoot + '\' + SR.Name + '\' + sTargetExe;
+              Break;
+            end;
+          end;
+        until FindNext(SR) <> 0;
+      finally
+        FindClose(SR);
+      end;
+    end;
+  end;
+
+begin
+  Result := '';
+  slBaseFolders := TStringList.Create;
+  try
+    slBaseFolders.Add(GetEnvironmentVariable('WinDir') + '\System32');
+    slBaseFolders.Add(GetEnvironmentVariable('ProgramW6432'));
+    slBaseFolders.Add(GetEnvironmentVariable('ProgramFiles(x86)'));
+    slBaseFolders.Add(GetEnvironmentVariable('LocalAppData') + '\Programs');
+
+    for sFolder in slBaseFolders do begin
+      if (sFolder <> '') and (DirectoryExists(sFolder)) then begin
+        sFoundPath := SearchInSubDirs(sFolder, sExeName);
+        if (sFoundPath <> '') then begin
+          Result := sFoundPath;
+          Break;
+        end;
+      end;
+    end;
+  finally
+    slBaseFolders.Free;
+  end;
+end;
+
+procedure TfrmSQLFunctionConverter.InitEditors;
+const
+  //Liste aller initialen Editoren & der passenden Bezeichnungen
+  EDITOR_EXES     : array[0..2] of String = ('notepad.exe', 'notepad++.exe', 'code.exe');
+  EDITOR_INI_NAMES: array[0..2] of String = ('Editor_Notepad', 'Editor_Notepad++', 'Editor_vsCode');
+var
+  ii: integer;
+  sFoundPath: string;
+  isStandardSet: boolean;
+begin
+  if not FileExists(EditorsFile.FileName) then begin
+    isStandardSet := False;
+    //Definierte Editoren durchsuchen
+    for ii := Low(EDITOR_EXES) to High(EDITOR_EXES) do begin
+      sFoundPath := FindEditorExe(EDITOR_EXES[ii]);
+      if (sFoundPath <> '') then begin
+        //Ersten Editor als Standard setzen
+        if (not isStandardSet) then begin
+          EditorsFile.WriteString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, EDITOR_INI_NAMES[ii]);
+          isStandardSet := True;
+        end;
+        EditorsFile.WriteString(EDITOR_INI_NAMES[ii], EDITORS_KEY_PATH, sFoundPath);
+      end;
+    end;
   end;
 end;
 
@@ -198,17 +288,17 @@ procedure TfrmSQLFunctionConverter.InitForm;
 begin
   with ConfigFile do begin
     //Menü
-    mitShowComments.Checked   := ReadBool(INI_SEC_FORM  , INI_KEY_SHOWCOMMENTS  , true);
-    mitReturnToSelect.Checked := ReadBool(INI_SEC_OUTPUT, INI_KEY_RETURNTOSELECT, true);
+    mitShowComments.Checked   := ReadBool(CONFIG_SEC_FORM  , CONFIG_KEY_SHOWCOMMENTS  , true);
+    mitReturnToSelect.Checked := ReadBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_RETURNTOSELECT, true);
 
     //Form
-    frmSQLFunctionConverter.Width  := ReadInteger(INI_SEC_FORM, INI_KEY_WIDTH , FRM_WIDTH);
-    frmSQLFunctionConverter.Height := ReadInteger(INI_SEC_FORM, INI_KEY_HEIGHT, FRM_HEIGHT);
+    frmSQLFunctionConverter.Width  := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_WIDTH , FRM_WIDTH);
+    frmSQLFunctionConverter.Height := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_HEIGHT, FRM_HEIGHT);
 
     //Panels
-    pnlInput.Width     := ReadInteger(INI_SEC_FORM, INI_KEY_PNLINPUTWIDTH    , PNL_INPUT_WIDTH);
-    pnlParameter.Width := ReadInteger(INI_SEC_FORM, INI_KEY_PNLPARAMETERWIDTH, PNL_PARAMETER_WIDTH);
-    pnlOutput.Width    := ReadInteger(INI_SEC_FORM, INI_KEY_PNLOUTPUTWIDTH   , PNL_OUTPUT_WIDTH);
+    pnlInput.Width     := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLINPUTWIDTH    , PNL_INPUT_WIDTH);
+    pnlParameter.Width := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLPARAMETERWIDTH, PNL_PARAMETER_WIDTH);
+    pnlOutput.Width    := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLOUTPUTWIDTH   , PNL_OUTPUT_WIDTH);
   end;
 
   //Parameter-Grid
@@ -227,7 +317,7 @@ var
 begin
   with grdParameter do begin
     //Initalisierung des Grids
-    if FillHeader then begin
+    if (FillHeader) then begin
       RowCount  := 2;
       FixedRows := 1;
       Cells[COL_DIRECTION, 0] := 'Art';
@@ -294,7 +384,7 @@ begin
     iPosLastDeclare := 0;
     while ii < slStatement.Count do begin
       sCurrentLine := GetLineWithoutComment(Trim(slStatement[ii]));
-      if sCurrentLine.StartsWith(DECLARE, True) then begin
+      if (sCurrentLine.StartsWith(DECLARE, True)) then begin
         //Mehrere Zeilen prüfen wegen Local Temp. Tables
         while (ii < slStatement.Count) and not sCurrentLine.EndsWith(';') do begin
           Inc(ii);
@@ -313,7 +403,7 @@ begin
         sValue    := Trim(Cells[COL_VALUE, ii]);
 
         slDeclares.Add(Format('  DECLARE %s %s;', [sName, sDatatype]));
-        if sValue <> '' then
+        if (sValue <> '') then
           slSets.Add(Format('  SET %s = %s;', [sName, sValue]))
         ;
       end;
@@ -321,7 +411,7 @@ begin
 
     //Falls DECLAREs vorhanden -> Block einfügen
     with slDeclares do begin
-      if Count > 0 then begin
+      if (Count > 0) then begin
         Insert(0, CRLF + '  --Start: DECLARE der Parameter');
         Add('  --Ende: DECLARE der Parameter' + CRLF);
         for ii := 0 to Count - 1 do begin
@@ -332,7 +422,7 @@ begin
 
     //Falls SETs vorhanden -> Block einfügen
     with slSets do begin
-      if Count > 0 then begin
+      if (Count > 0) then begin
         iPosLastDeclare := iPosLastDeclare + slDeclares.Count;
         Insert(0, '  --Start: SET der Parameter');
         Add('  --Ende: SET der Parameter' + CRLF);
@@ -380,17 +470,46 @@ begin
   end;
 end;
 
+procedure TfrmSQLFunctionConverter.mitSelectOutputEditorClick(Sender: TObject);
+var
+  fEditorSettings: TfrmEditorSettings;
+begin
+  if (GetKeyState(VK_SHIFT) < 0) then begin
+    //Bei gedrückter SHIFT-Taste die Editorsettings im Editor öffnen
+    if (FileExists(EditorsFile.FileName)) then
+      ShellExecute(
+        0,
+        'open',
+        PChar(EditorsFile.FileName),
+        nil,
+        nil,
+        SW_SHOWNORMAL
+      )
+    else
+      MessageDlg('Editorsettings nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0)
+    ;
+  end
+  else begin
+    fEditorSettings := TfrmEditorSettings.Create(Self, EditorsFile);
+    try
+      fEditorSettings.ShowModal;
+    finally
+      fEditorSettings.Free;
+    end;
+  end;
+end;
+
 procedure TfrmSQLFunctionConverter.mitReturnToSelectClick(Sender: TObject);
 begin
   mitReturnToSelect.Checked := not mitReturnToSelect.Checked;
-  ConfigFile.WriteBool(INI_SEC_OUTPUT, INI_KEY_RETURNTOSELECT, mitReturnToSelect.Checked);
+  ConfigFile.WriteBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_RETURNTOSELECT, mitReturnToSelect.Checked);
 end;
 
 procedure TfrmSQLFunctionConverter.mitShowCommentsClick(Sender: TObject);
 begin
   mitShowComments.Checked := not mitShowComments.Checked;
   HandleCommentColumnVisibility;
-  ConfigFile.WriteBool(INI_SEC_FORM, INI_KEY_SHOWCOMMENTS, mitShowComments.Checked);
+  ConfigFile.WriteBool(CONFIG_SEC_FORM, CONFIG_KEY_SHOWCOMMENTS, mitShowComments.Checked);
 end;
 
 procedure TfrmSQLFunctionConverter.mitStyleClick(Sender: TObject);
@@ -403,7 +522,7 @@ begin
     TStyleManager.SetStyle(sStyle);
     (Sender as TMenuItem).Checked := True;
     for ii := 0 to mitStyles.Count -1 do begin
-    if not mitStyles.Items[ii].Equals(Sender) then
+    if (not mitStyles.Items[ii].Equals(Sender)) then
       mitStyles.Items[ii].Checked := False;
     end;
   end;
@@ -425,7 +544,7 @@ begin
     iPosStart := 0;
     iPosEnd := Pos(PARAMETER_START, sParameter, 1);
     //Nichts gefunden? Dann ist es standardmäßig ein "IN"
-    if iPosEnd <> 1 then
+    if (iPosEnd <> 1) then
       sDirection := Trim(Copy(sParameter, iPosStart, iPosEnd - 1))
     else
       sDirection := 'IN'
@@ -469,12 +588,12 @@ function TfrmSQLFunctionConverter.GetOffset(sText: String; checkDatatype: boolea
 begin
   //Überprüfen, ob der Text mit ',' endet oder ...
   Result := 0;
-  if sText.EndsWith(',') then
+  if (sText.EndsWith(',')) then
     Result := 1
   ;
 
   //mit ')' endet
-  if sText.EndsWith(')') then begin
+  if (sText.EndsWith(')')) then begin
     Result := 1;
     if (sText.Length > 1) then begin
       if (checkDatatype and CharInSet(sText[sText.Length - 1], ['0'..'9']))// Wird nach dem Datentypen geschaut, soll das Offset wieder entfernt werden, falls das vorletzte Zeichen nummerisch ist. Grund: VARCHAR(x)
@@ -496,7 +615,7 @@ begin
   grdParameter.MouseToCell(currentPoint.X, currentPoint.Y, iCol, iRow);
 
   //Spaltenbreite anpassen, falls Klick in Überschriftszeile
-  if iRow = 0 then
+  if (iRow = 0) then
     AdjustColumn(iCol);
 end;
 
@@ -580,7 +699,7 @@ begin
     InsertParameterToStatement(slStatement);
 
     //RETURN / INOUT/OUT-Parameter in SELECT umwandeln
-    if mitReturnToSelect.Checked then
+    if (mitReturnToSelect.Checked) then
       CreateOutputSection(slStatement)
     ;
 
@@ -592,26 +711,59 @@ end;
 
 procedure TfrmSQLFunctionConverter.HandleCommentColumnVisibility;
 begin
-  if mitShowComments.Checked then
+  if (mitShowComments.Checked) then
     grdParameter.ColWidths[COL_COMMENT] := MIN_COL_WIDTH
   else
     grdParameter.ColWidths[COL_COMMENT] := 0
   ;
 end;
 
-procedure TfrmSQLFunctionConverter.btnCopyClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.btnOpenOutputClick(Sender: TObject);
+var
+  hRes: HINST;
+  sOutputFile  : String;
+  sActiveEditor: String;
 begin
-  with Clipboard do begin
-    Clear;
-    AsText := memOutput.Text;
+  //Ausgabe im Standard-Editor öffnen
+  sActiveEditor := GetActiveEditorPath;
+  if (Trim(sActiveEditor) = '') then begin
+    MessageDlg('Standard-Editor nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0);
+    Exit;
   end;
+
+  sOutputFile := GetAppFilePath(OUTPUT_FILENAME);
+  TFile.WriteAllText(sOutputFile, memOutput.Lines.Text);
+
+  //Datei im Editor öffnen
+  hRes := ShellExecute(
+    Handle,
+    'open',
+    PChar(sActiveEditor),
+    PChar('"' + sOutputFile + '"'),
+    nil,
+    SW_SHOWNORMAL
+  );
+
+  //Fehlerfall anzeigen
+  if (hRes <= 32) then
+    MessageDlg(
+      'Editor konnte nicht gestartet werden!' + CR + SysErrorMessage(GetLastError),
+      mtError,
+      [mbOK],
+      0
+    )
+  ;
+//  with Clipboard do begin
+//    Clear;
+//    AsText := memOutput.Text;
+//  end;
 end;
 
 procedure TfrmSQLFunctionConverter.btnRefreshClick(Sender: TObject);
 begin
   //Übernahme des Grid-Parameter in die Ausgabe & Fokus auf den Button "Kopieren" setzen
   GridParameterToOutput;
-  btnCopy.SetFocus;
+  btnOpenOutput.SetFocus;
 end;
 
 function TfrmSQLFunctionConverter.GetOutParameterList: TStringlist;
@@ -647,14 +799,14 @@ var
 begin
   //OUT-Parameter zusammensetzen
   sOutParameter := GetOutParameterList.DelimitedText;
-  if sOutParameter <> '' then
+  if (sOutParameter <> '') then
     sOutParameter := StringReplace(sOutParameter, ',', ', ', [rfReplaceAll]) + ';' + CRLF
   ;
   returnFound := False;
   iPosEnd := 1;
   for ii := 0 to slStatement.Count - 1 do begin
     sLine := slStatement[ii];
-    if Trim(sLine).StartsWith('RETURN', True) then begin
+    if (Trim(sLine).StartsWith('RETURN', True)) then begin
       returnFound := True;
       //Kommentar kicken & RETURN durch SELECT ersetzen
       sLine := StringReplace(GetLineWithoutComment(sLine), 'RETURN', 'SELECT', [rfReplaceAll, rfIgnoreCase]);
@@ -667,7 +819,7 @@ begin
     end;
 
     //Direkt die Position des letzten END speichern, falls man sie unten benötigt
-    if Trim(sLine).StartsWith('END', True) then
+    if (Trim(sLine).StartsWith('END', True)) then
       iPosEnd := ii;
     ;
   end;
@@ -702,18 +854,32 @@ begin
   end;
 end;
 
-function TfrmSQLFunctionConverter.GetConfigFile: String;
+function TfrmSQLFunctionConverter.GetActiveEditorPath: String;
+var
+  sActiveEditor: String;
+begin
+  Result := '';
+  if not Assigned(EditorsFile) or (not FileExists(EditorsFile.FileName)) then
+    Exit
+  ;
+  sActiveEditor := EditorsFile.ReadString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, '');
+  if (Trim(sActiveEditor) <> '') then
+    Result := EditorsFile.ReadString(sActiveEditor, EDITORS_KEY_PATH, '')
+  ;
+end;
+
+function TfrmSQLFunctionConverter.GetAppFilePath(sFilename: String): String;
 var
   sPath: String;
 begin
   //Versuchen die Config standardmäßig in %APPDATA% zu speichern
-  sPath := TPath.Combine(GetEnvironmentVariable('APPDATA'), frmSQLFunctionConverter.Caption);
-  if not ForceDirectories(sPath) then
+  sPath := TPath.Combine(GetEnvironmentVariable('APPDATA'), PROGRAMM_NAME);
+  if (not ForceDirectories(sPath)) then
     //Falls das nicht geht, dann im Verzeichnis der Exe
     sPath := ExtractFilePath(Application.ExeName)
   ;
 
-  Result := TPath.Combine(sPath, 'Fx_Settings.ini');
+  Result := TPath.Combine(sPath, sFilename);
 end;
 
 function TfrmSQLFunctionConverter.GetLineWithoutComment(sLine: String) : String;
@@ -808,7 +974,7 @@ begin
   iPosEnd   := UpperCase(aFilename).IndexOf('(');
   aFilename := Trim(Copy(aFilename, 1, iPosEnd));
 
-  if Trim(aFilename) = '' then
+  if (Trim(aFilename) = '') then
     aFilename := 'Output'
   else
     frmSQLFunctionConverter.Caption := PROGRAMM_NAME + ' | ' + aFilename;
@@ -825,26 +991,32 @@ end;
 procedure TfrmSQLFunctionConverter.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   with ConfigFile do begin
-    WriteString (INI_SEC_FORM, INI_KEY_STYLE            , TStyleManager.ActiveStyle.Name);
-    WriteInteger(INI_SEC_FORM, INI_KEY_WIDTH            , frmSQLFunctionConverter.Width);
-    WriteInteger(INI_SEC_FORM, INI_KEY_HEIGHT           , frmSQLFunctionConverter.Height);
-    WriteInteger(INI_SEC_FORM, INI_KEY_PNLINPUTWIDTH    , pnlInput.Width);
-    WriteInteger(INI_SEC_FORM, INI_KEY_PNLPARAMETERWIDTH, pnlParameter.Width);
-    WriteInteger(INI_SEC_FORM, INI_KEY_PNLOUTPUTWIDTH   , pnlOutput.Width);
+    WriteString (CONFIG_SEC_FORM, CONFIG_KEY_STYLE            , TStyleManager.ActiveStyle.Name);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_WIDTH            , frmSQLFunctionConverter.Width);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_HEIGHT           , frmSQLFunctionConverter.Height);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLINPUTWIDTH    , pnlInput.Width);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLPARAMETERWIDTH, pnlParameter.Width);
+    WriteInteger(CONFIG_SEC_FORM, CONFIG_KEY_PNLOUTPUTWIDTH   , pnlOutput.Width);
   end;
 end;
 
 procedure TfrmSQLFunctionConverter.FormCreate(Sender: TObject);
 begin
-  //ConfigFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
-  ConfigFile := TIniFile.Create(GetConfigFile);
+  //Konfigurationsdateien erstellen
+  ConfigFile := TIniFile.Create(GetAppFilePath(CONFIG_FILENAME));
+  EditorsFile:= TIniFile.Create(GetAppFilePath(EDITORS_FILENAME));
+
+  //Editoren initialisieren
+  InitEditors;
+
   //Style laden
-  TStyleManager.TrySetStyle(ConfigFile.ReadString(INI_SEC_FORM, INI_KEY_STYLE, ''), False);
+  TStyleManager.TrySetStyle(ConfigFile.ReadString(CONFIG_SEC_FORM, CONFIG_KEY_STYLE, ''), False);
 end;
 
 procedure TfrmSQLFunctionConverter.FormDestroy(Sender: TObject);
 begin
   ConfigFile.Free;
+  EditorsFile.Free;
 end;
 
 end.

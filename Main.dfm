@@ -147,13 +147,13 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Height = 41
         Align = alBottom
         TabOrder = 1
-        object btnCopy: TButton
+        object btnOpenOutput: TButton
           Left = 1
           Top = 1
           Width = 446
           Height = 39
           Align = alClient
-          Caption = 'Kopieren'
+          Caption = 'Im Editor '#246'ffnen'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -19
@@ -161,7 +161,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
           Font.Style = [fsBold]
           ParentFont = False
           TabOrder = 0
-          OnClick = btnCopyClick
+          OnClick = btnOpenOutputClick
         end
       end
     end
@@ -298,9 +298,13 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       object N3: TMenuItem
         Caption = '-'
       end
-      object btnClearConfig: TMenuItem
+      object mitSelectOutputEditor: TMenuItem
+        Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen'
+        OnClick = mitSelectOutputEditorClick
+      end
+      object mitClearConfig: TMenuItem
         Caption = 'Konfiguration zur'#252'cksetzen'
-        OnClick = btnClearConfigClick
+        OnClick = mitClearConfigClick
       end
     end
   end
