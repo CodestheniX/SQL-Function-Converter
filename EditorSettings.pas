@@ -22,7 +22,7 @@ type
     lbxEditors: TListBox;
     pnlButtons: TPanel;
     btnCancel: TButton;
-    btnOK: TButton;
+    btnSave: TButton;
     pnlEditors: TPanel;
     pnlProperties: TPanel;
     pnlPropertiesHeader: TPanel;
@@ -50,12 +50,14 @@ type
     procedure edtNameExit(Sender: TObject);
     procedure edtPathExit(Sender: TObject);
     procedure chkUseEditorClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
   private
     isRefreshing: boolean;
     procedure CreateTestFile(var sFile: String);
     procedure LoadEditorList;
     procedure LoadEditorSettings;
     procedure RefreshEditorList;
+    procedure ClearEditorConfig;
   public
     EditorsFile: TIniFile;
     constructor Create(AOwner: TComponent; var AEditorsFile: TIniFile); reintroduce;
@@ -141,6 +143,50 @@ begin
   ;
 
   LoadEditorSettings;
+end;
+
+procedure TfrmEditorSettings.btnSaveClick(Sender: TObject);
+var
+  eProfile: TEditorProfile;
+  sSection: String;
+  ii : integer;
+begin
+  if (not assigned(EditorsFile)) then
+    Exit
+  ;
+
+  //Zuerst die aktuelle Editor-Settings löschen
+  ClearEditorConfig;
+
+  //Alle Editor-Profile neu eintragen
+  for ii := 0 to lbxEditors.Count - 1 do begin
+    eProfile := TEditorProfile(lbxEditors.Items.Objects[ii]);
+
+    sSection := EDITORS_SEC_EDITOR_X + eProfile.Name;
+    EditorsFile.WriteString(sSection, EDITORS_KEY_PATH, eProfile.Path);
+
+    if eProfile.isActive then
+      EditorsFile.WriteString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, sSection)
+    ;
+  end;
+end;
+
+procedure TfrmEditorSettings.ClearEditorConfig;
+var
+  slSections: TStringList;
+  sSection  : String;
+begin
+  slSections := TStringList.Create;
+  try
+    EditorsFile.ReadSections(slSections);
+    for sSection in slSections do begin
+      if sSection.StartsWith(EDITORS_SEC_EDITOR_X) then
+        EditorsFile.EraseSection(sSection)
+      ;
+    end;
+  finally
+    slSections.Free;
+  end;
 end;
 
 procedure TfrmEditorSettings.btnSelectPathClick(Sender: TObject);

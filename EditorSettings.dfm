@@ -303,12 +303,12 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         TabOrder = 1
       end
-      object btnOK: TButton
+      object btnSave: TButton
         Left = 10
         Top = 4
         Width = 75
         Height = 25
-        Caption = 'OK'
+        Caption = 'Speichern'
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
         Font.Height = -12
@@ -317,6 +317,7 @@ object frmEditorSettings: TfrmEditorSettings
         ModalResult = 1
         ParentFont = False
         TabOrder = 0
+        OnClick = btnSaveClick
       end
     end
   end

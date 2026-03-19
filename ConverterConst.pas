@@ -8,8 +8,7 @@
     -
 
    Could
-    - Doppelklick => Editor
-    => 27.01.26 - Hier weiter machen!
+    -
 }
 
 
@@ -32,6 +31,8 @@
     - Kommentare speichern und dann anzeigen
     - Buzzwords farblich kennzeichnen
       => Lassen wir weg - Die Memo kann keinen Richtext und TSynEdit ist nicht Style-aware...
+    - Doppelklick => Editor
+    => 27.01.26 - Hier weiter machen!
 }
 
 interface
