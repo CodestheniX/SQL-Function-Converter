@@ -48,6 +48,7 @@ type
     mitClearConfig: TMenuItem;
     mitSelectOutputEditor: TMenuItem;
     mitConvertComments: TMenuItem;
+    mitOpenConfigPath: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -68,6 +69,7 @@ type
     procedure grdParameterDblClick(Sender: TObject);
     procedure mitSelectOutputEditorClick(Sender: TObject);
     procedure mitConvertCommentsClick(Sender: TObject);
+    procedure mitOpenConfigPathClick(Sender: TObject);
   private
     ConfigFile : TIniFile; //Konfigurationen für die Main-Form
     EditorsFile: TIniFile; //Hinterlegte Editoren & aktiver Editor
@@ -470,6 +472,22 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TfrmSQLFunctionConverter.mitOpenConfigPathClick(Sender: TObject);
+var
+  sPath: String;
+begin
+  if (not assigned(ConfigFile)) then
+    Exit
+  ;
+  sPath := ExtractFilePath(ConfigFile.FileName);
+
+  if (not DirectoryExists(sPath)) then begin
+    MessageDlg('Verzeichnis existiert nicht!', mtError, [mbOK], 0);
+    Exit;
+  end;
+  ShellExecute(Handle, 'open', PChar(sPath), nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TfrmSQLFunctionConverter.mitSaveOutputClick(Sender: TObject);
