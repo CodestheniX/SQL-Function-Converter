@@ -311,6 +311,10 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Caption = 'Konfiguration zur'#252'cksetzen'
         OnClick = mitClearConfigClick
       end
+      object mitOpenConfigPath: TMenuItem
+        Caption = 'Konfigurationsverzeichnis '#246'ffnen'
+        OnClick = mitOpenConfigPathClick
+      end
     end
   end
   object dlgSave: TSaveTextFileDialog
