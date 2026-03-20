@@ -41,6 +41,8 @@ type
     btnDelete: TButton;
     dlgOpen: TOpenDialog;
     btnSelectPath: TButton;
+    edtParameter: TEdit;
+    lblParameter: TLabel;
     procedure FormDestroy(Sender: TObject);
     procedure lbxEditorsClick(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
