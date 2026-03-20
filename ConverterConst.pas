@@ -77,7 +77,7 @@ const
   //Section: Editor_...
   EDITORS_SEC_EDITOR_X  = 'Editor_';
   EDITORS_KEY_PATH      = 'Path';
-  //EDITORS_KEY_PARAMETER = 'Parameter';
+  EDITORS_KEY_PARAMETER = 'Parameter';
 
 
   //*** Dateinamen für SQL-Dateien

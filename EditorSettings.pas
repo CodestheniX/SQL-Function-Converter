@@ -12,6 +12,7 @@ type
     public
       Name     : String;
       Path     : String;
+      Parameter: String;
       isActive : boolean;
   end;
 
@@ -41,6 +42,8 @@ type
     btnDelete: TButton;
     dlgOpen: TOpenDialog;
     btnSelectPath: TButton;
+    edtParameter: TEdit;
+    lblParameter: TLabel;
     procedure FormDestroy(Sender: TObject);
     procedure lbxEditorsClick(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
@@ -51,6 +54,7 @@ type
     procedure edtPathExit(Sender: TObject);
     procedure chkUseEditorClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
+    procedure edtParameterExit(Sender: TObject);
   private
     isRefreshing: boolean;
     procedure CreateTestFile(var sFile: String);
@@ -106,6 +110,7 @@ begin
   with eProfile do begin
     Name     := sName;
     Path     := '';
+    Parameter:= '';
     isActive := False;
   end;
 
@@ -164,6 +169,7 @@ begin
 
     sSection := EDITORS_SEC_EDITOR_X + eProfile.Name;
     EditorsFile.WriteString(sSection, EDITORS_KEY_PATH, eProfile.Path);
+    EditorsFile.WriteString(sSection, EDITORS_KEY_PARAMETER, eProfile.Parameter);
 
     if eProfile.isActive then
       EditorsFile.WriteString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, sSection)
@@ -199,6 +205,7 @@ end;
 procedure TfrmEditorSettings.btnTestEditorClick(Sender: TObject);
 var
   sTempFile : String;
+  sParameter: String;
   hRes : HINST;
 begin
   //Pfad prüfen
@@ -217,12 +224,15 @@ begin
   //Temp. Test-Datei erzeugen
   CreateTestFile(sTempFile);
 
+  //Parameter zusammensetzen
+  sParameter := Trim(edtParameter.Text) + ' "' + sTempFile + '"';
+
   //Datei im Editor öffnen
   hRes := ShellExecute(
     Handle,
     'open',
     PChar(edtPath.Text),
-    PChar('"' + sTempFile + '"'),
+    PChar(sParameter),
     nil,
     SW_SHOWNORMAL
   );
@@ -304,6 +314,14 @@ begin
   eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
   eProfile.Name := sName;
   RefreshEditorList;
+end;
+
+procedure TfrmEditorSettings.edtParameterExit(Sender: TObject);
+var
+  eProfile : TEditorProfile;
+begin
+  eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
+  eProfile.Parameter := edtParameter.Text;
 end;
 
 procedure TfrmEditorSettings.edtPathExit(Sender: TObject);
@@ -395,6 +413,7 @@ begin
       with eProfile do begin
         Name      := sEditorName;
         Path      := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PATH, '');
+        Parameter := EditorsFile.ReadString(sSectionName, EDITORS_KEY_PARAMETER, '');
         isActive  := SameText(sActiveEditor, sSectionName);
         if (isActive) then
           sDisplayName := SELECTED_EDITOR_SYMBOL + ' ' + sDisplayName
@@ -446,14 +465,16 @@ begin
   if (lbxEditors.ItemIndex >= 0) then begin
     eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
     with eProfile do begin
-      edtName.Text := Name;
-      edtPath.Text := Path;
+      edtName.Text         := Name;
+      edtPath.Text         := Path;
+      edtParameter.Text    := Parameter;
       chkUseEditor.Checked := isActive;
     end;
   end
   else begin
-    edtName.Text := '';
-    edtPath.Text := '';
+    edtName.Text         := '';
+    edtPath.Text         := '';
+    edtParameter.Text    := '';
     chkUseEditor.Checked := False;
   end;
   btnDelete.Enabled := not chkUseEditor.Checked;

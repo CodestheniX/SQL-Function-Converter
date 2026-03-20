@@ -44,11 +44,12 @@ type
     mitBearbeiten: TMenuItem;
     mitConvert: TMenuItem;
     mitRefresh: TMenuItem;
-    N3: TMenuItem;
     mitClearConfig: TMenuItem;
     mitSelectOutputEditor: TMenuItem;
     mitConvertComments: TMenuItem;
     mitOpenConfigPath: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -80,7 +81,7 @@ type
     function GetLineWithoutComment(sLine: String): String;
     function GetOutParameterList: TStringlist;
     function GetAppFilePath(sFilename: String): String;
-    function GetActiveEditorPath: String;
+    function GetActiveEditorProperty(sSection : String): String;
     function FindEditorExe(const sExeName: string): string;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
@@ -289,6 +290,7 @@ begin
           isStandardSet := True;
         end;
         EditorsFile.WriteString(EDITOR_INI_NAMES[ii], EDITORS_KEY_PATH, sFoundPath);
+        EditorsFile.WriteString(EDITOR_INI_NAMES[ii], EDITORS_KEY_PARAMETER, '');
       end;
     end;
   end;
@@ -756,16 +758,18 @@ procedure TfrmSQLFunctionConverter.btnOpenOutputClick(Sender: TObject);
 var
   hRes: HINST;
   sOutputFile  : String;
+  sParameters  : String;
   sActiveEditor: String;
 begin
   //Ausgabe im Standard-Editor öffnen
-  sActiveEditor := GetActiveEditorPath;
+  sActiveEditor := GetActiveEditorProperty(EDITORS_KEY_PATH);
   if (Trim(sActiveEditor) = '') then begin
     MessageDlg('Standard-Editor nicht gefunden!', TMsgDlgType.mtError, [mbOK], 0);
     Exit;
   end;
 
   sOutputFile := GetAppFilePath(OUTPUT_FILENAME);
+  sParameters := GetActiveEditorProperty(EDITORS_KEY_PARAMETER) + ' "' + sOutputFile + '"';
   TFile.WriteAllText(sOutputFile, memOutput.Lines.Text);
 
   //Datei im Editor öffnen
@@ -773,7 +777,7 @@ begin
     Handle,
     'open',
     PChar(sActiveEditor),
-    PChar('"' + sOutputFile + '"'),
+    PChar(sParameters),
     nil,
     SW_SHOWNORMAL
   );
@@ -888,7 +892,7 @@ begin
   end;
 end;
 
-function TfrmSQLFunctionConverter.GetActiveEditorPath: String;
+function TfrmSQLFunctionConverter.GetActiveEditorProperty(sSection : String): String;
 var
   sActiveEditor: String;
 begin
@@ -898,7 +902,7 @@ begin
   ;
   sActiveEditor := EditorsFile.ReadString(EDITORS_SEC_EDITOR, EDITORS_KEY_ACTIVE, '');
   if (Trim(sActiveEditor) <> '') then
-    Result := EditorsFile.ReadString(sActiveEditor, EDITORS_KEY_PATH, '')
+    Result := EditorsFile.ReadString(sActiveEditor, sSection, '')
   ;
 end;
 
