@@ -255,17 +255,30 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ShortCut = 16467
         OnClick = mitSaveOutputClick
       end
+      object N4: TMenuItem
+        Caption = '-'
+      end
+      object mitSelectOutputEditor: TMenuItem
+        Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen'
+        OnClick = mitSelectOutputEditorClick
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
+      object mitStyles: TMenuItem
+        Caption = 'Design/Theme'
+      end
+      object mitOpenConfigPath: TMenuItem
+        Caption = 'Konfigurationsverzeichnis '#246'ffnen'
+        OnClick = mitOpenConfigPathClick
+      end
+      object mitClearConfig: TMenuItem
+        Caption = 'Konfiguration zur'#252'cksetzen'
+        OnClick = mitClearConfigClick
+      end
     end
     object mitBearbeiten: TMenuItem
       Caption = 'Bearbeiten'
-      object mitAdjustColumn: TMenuItem
-        Caption = 'Spaltenbreite anpassen'
-        ShortCut = 112
-        OnClick = mitAdjustColumnClick
-      end
-      object N1: TMenuItem
-        Caption = '-'
-      end
       object mitConvert: TMenuItem
         Caption = 'Eingabe konvertieren'
         ShortCut = 120
@@ -276,44 +289,34 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ShortCut = 116
         OnClick = btnRefreshClick
       end
-    end
-    object mitOptionen: TMenuItem
-      Caption = 'Optionen'
-      object mitReturnToSelect: TMenuItem
-        Caption = 'RETURN && OUT-Parameter in SELECT umwandeln '
-        Checked = True
-        OnClick = mitReturnToSelectClick
-      end
-      object mitConvertComments: TMenuItem
-        Caption = 'Kommentare: //** in -- konvertieren'
-        Checked = True
-        OnClick = mitConvertCommentsClick
-      end
-      object N2: TMenuItem
+      object N1: TMenuItem
         Caption = '-'
       end
+      object mitAdjustColumn: TMenuItem
+        Caption = 'Spaltenbreite anpassen'
+        ShortCut = 112
+        OnClick = mitAdjustColumnClick
+      end
+    end
+    object mitOptionen: TMenuItem
+      Caption = 'Konvertierung'
       object mitShowComments: TMenuItem
         Caption = 'Kommentare im Grid anzeigen'
         Checked = True
         OnClick = mitShowCommentsClick
       end
-      object mitStyles: TMenuItem
-        Caption = 'Styles'
-      end
-      object N3: TMenuItem
+      object N2: TMenuItem
         Caption = '-'
       end
-      object mitSelectOutputEditor: TMenuItem
-        Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen'
-        OnClick = mitSelectOutputEditorClick
+      object mitReturnToSelect: TMenuItem
+        Caption = 'RETURN && OUT '#8594' SELECT'
+        Checked = True
+        OnClick = mitReturnToSelectClick
       end
-      object mitClearConfig: TMenuItem
-        Caption = 'Konfiguration zur'#252'cksetzen'
-        OnClick = mitClearConfigClick
-      end
-      object mitOpenConfigPath: TMenuItem
-        Caption = 'Konfigurationsverzeichnis '#246'ffnen'
-        OnClick = mitOpenConfigPathClick
+      object mitConvertComments: TMenuItem
+        Caption = 'Kommentare: //** '#8594' --'
+        Checked = True
+        OnClick = mitConvertCommentsClick
       end
     end
   end

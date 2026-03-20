@@ -44,11 +44,12 @@ type
     mitBearbeiten: TMenuItem;
     mitConvert: TMenuItem;
     mitRefresh: TMenuItem;
-    N3: TMenuItem;
     mitClearConfig: TMenuItem;
     mitSelectOutputEditor: TMenuItem;
     mitConvertComments: TMenuItem;
     mitOpenConfigPath: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
