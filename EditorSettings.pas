@@ -54,6 +54,7 @@ type
     procedure edtPathExit(Sender: TObject);
     procedure chkUseEditorClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
+    procedure edtParameterExit(Sender: TObject);
   private
     isRefreshing: boolean;
     procedure CreateTestFile(var sFile: String);
@@ -313,6 +314,14 @@ begin
   eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
   eProfile.Name := sName;
   RefreshEditorList;
+end;
+
+procedure TfrmEditorSettings.edtParameterExit(Sender: TObject);
+var
+  eProfile : TEditorProfile;
+begin
+  eProfile := TEditorProfile(lbxEditors.Items.Objects[lbxEditors.ItemIndex]);
+  eProfile.Parameter := edtParameter.Text;
 end;
 
 procedure TfrmEditorSettings.edtPathExit(Sender: TObject);

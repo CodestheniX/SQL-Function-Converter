@@ -306,11 +306,11 @@ object frmEditorSettings: TfrmEditorSettings
         Font.Height = -12
         Font.Name = 'Tahoma'
         Font.Style = []
-        MaxLength = 25
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
         TabOrder = 4
+        OnExit = edtParameterExit
         ExplicitWidth = 277
       end
     end
