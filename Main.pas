@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.UITypes, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids,
   ClipBrd, IniFiles, Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils, ShellAPI,
-  EditorSettings, ConverterConst;
+  System.RegularExpressions, EditorSettings, ConverterConst;
 
 type
   TfrmSQLFunctionConverter = class(TForm)
@@ -47,6 +47,7 @@ type
     N3: TMenuItem;
     mitClearConfig: TMenuItem;
     mitSelectOutputEditor: TMenuItem;
+    mitConvertComments: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -66,6 +67,7 @@ type
     procedure mitClearConfigClick(Sender: TObject);
     procedure grdParameterDblClick(Sender: TObject);
     procedure mitSelectOutputEditorClick(Sender: TObject);
+    procedure mitConvertCommentsClick(Sender: TObject);
   private
     ConfigFile : TIniFile; //Konfigurationen für die Main-Form
     EditorsFile: TIniFile; //Hinterlegte Editoren & aktiver Editor
@@ -183,6 +185,12 @@ begin
   end;
 end;
 
+procedure TfrmSQLFunctionConverter.mitConvertCommentsClick(Sender: TObject);
+begin
+  mitConvertComments.Checked := not mitConvertComments.Checked;
+  ConfigFile.WriteBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_CONVERTCOMMENTS, mitConvertComments.Checked);
+end;
+
 procedure TfrmSQLFunctionConverter.btnConvertClick(Sender: TObject);
 begin
   //Konvert der Parameter ins Grid
@@ -288,8 +296,9 @@ procedure TfrmSQLFunctionConverter.InitForm;
 begin
   with ConfigFile do begin
     //Menü
-    mitShowComments.Checked   := ReadBool(CONFIG_SEC_FORM  , CONFIG_KEY_SHOWCOMMENTS  , true);
-    mitReturnToSelect.Checked := ReadBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_RETURNTOSELECT, true);
+    mitShowComments.Checked    := ReadBool(CONFIG_SEC_FORM  , CONFIG_KEY_SHOWCOMMENTS   , true);
+    mitReturnToSelect.Checked  := ReadBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_RETURNTOSELECT , true);
+    mitConvertComments.Checked := ReadBool(CONFIG_SEC_OUTPUT, CONFIG_KEY_CONVERTCOMMENTS, true);
 
     //Form
     frmSQLFunctionConverter.Width  := ReadInteger(CONFIG_SEC_FORM, CONFIG_KEY_WIDTH , FRM_WIDTH);
@@ -702,6 +711,13 @@ begin
     if (mitReturnToSelect.Checked) then
       CreateOutputSection(slStatement)
     ;
+
+    //Kommentare konvertieren: //** in --
+    if (mitConvertComments.Checked) then begin
+      //slStatement.Text := StringReplace(slStatement.Text, '//***', '--', [rfReplaceAll]);
+      //slStatement.Text := StringReplace(slStatement.Text, '//**' , '--', [rfReplaceAll]);
+      slStatement.Text := TRegEx.Replace(slStatement.Text,'//\*+', '--');
+    end;
 
     memOutput.Lines.Assign(slStatement);
   finally

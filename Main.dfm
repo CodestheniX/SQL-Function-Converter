@@ -284,6 +284,11 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Checked = True
         OnClick = mitReturnToSelectClick
       end
+      object mitConvertComments: TMenuItem
+        Caption = 'Kommentare: //** in -- konvertieren'
+        Checked = True
+        OnClick = mitConvertCommentsClick
+      end
       object N2: TMenuItem
         Caption = '-'
       end

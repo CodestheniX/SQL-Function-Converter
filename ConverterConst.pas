@@ -63,8 +63,9 @@ const
   CONFIG_KEY_PNLOUTPUTWIDTH    = 'pnlOutputWidth';
 
   //Section: Output
-  CONFIG_SEC_OUTPUT         = 'Output';
-  CONFIG_KEY_RETURNTOSELECT = 'ReturnToSelect';
+  CONFIG_SEC_OUTPUT          = 'Output';
+  CONFIG_KEY_RETURNTOSELECT  = 'ReturnToSelect';
+  CONFIG_KEY_CONVERTCOMMENTS = 'ConvertComments';
 
 
   //*** Fx_Editors.ini: Sections & Keys der Editorsettings
