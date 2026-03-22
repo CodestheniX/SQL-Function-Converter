@@ -98,7 +98,7 @@ Die genaue Ausgabe hängt von den gesetzten Optionen und den eingetragenen Param
 - Mitte: Erkannte Parameter inklusive Werte und Kommentare
 - Rechts: Ausführbare SQL-Anweisung
 
-![Beispiel-Aufruf](Misc/Screenshots/Beispiel)
+![Beispiel-Aufruf](Misc/Screenshots/Beispiel.png)
 
 ### Wichtige Aktionen
 
