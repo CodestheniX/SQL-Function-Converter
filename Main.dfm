@@ -258,9 +258,9 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       object N4: TMenuItem
         Caption = '-'
       end
-      object mitSelectOutputEditor: TMenuItem
-        Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen'
-        OnClick = mitSelectOutputEditorClick
+      object mitEditorConfig: TMenuItem
+        Caption = 'Editoren verwalten'#8230
+        OnClick = mitEditorConfigClick
       end
       object N5: TMenuItem
         Caption = '-'

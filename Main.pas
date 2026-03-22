@@ -45,7 +45,7 @@ type
     mitConvert: TMenuItem;
     mitRefresh: TMenuItem;
     mitClearConfig: TMenuItem;
-    mitSelectOutputEditor: TMenuItem;
+    mitEditorConfig: TMenuItem;
     mitConvertComments: TMenuItem;
     mitOpenConfigPath: TMenuItem;
     N4: TMenuItem;
@@ -68,7 +68,7 @@ type
     procedure mitSaveOutputClick(Sender: TObject);
     procedure mitClearConfigClick(Sender: TObject);
     procedure grdParameterDblClick(Sender: TObject);
-    procedure mitSelectOutputEditorClick(Sender: TObject);
+    procedure mitEditorConfigClick(Sender: TObject);
     procedure mitConvertCommentsClick(Sender: TObject);
     procedure mitOpenConfigPathClick(Sender: TObject);
   private
@@ -499,7 +499,7 @@ begin
   end;
 end;
 
-procedure TfrmSQLFunctionConverter.mitSelectOutputEditorClick(Sender: TObject);
+procedure TfrmSQLFunctionConverter.mitEditorConfigClick(Sender: TObject);
 var
   fEditorSettings: TfrmEditorSettings;
 begin
@@ -672,7 +672,7 @@ begin
     end;
 
     //Bei ENTFERNEN die Zelle leeren
-    if (Key = VK_DELETE) then begin
+    if (Key = VK_DELETE) and (not EditorMode) then begin
       Cells[Col, Row] := '';
     end;
 
