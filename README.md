@@ -1,61 +1,61 @@
 # SQL Function Converter
 
-![SQL Function Converter](Misc/Icons/V2/Version%202.png)
+![SQL Function Converter](Misc/Screenshots/Programm-Start.png)
 
-Ein kleines Windows-Tool in Delphi/VCL zum schnellen Vorbereiten von SQL-Funktionen und SQL-Prozeduren fuer Tests, Debugging und manuelle Ausfuehrung.
+Ein kleines Windows-Tool in Delphi/VCL zum schnellen Vorbereiten von SQL-Funktionen & SQL-Prozeduren für Tests, Debugging und manuelle Ausführung.
 
-Der Converter liest die Parameter aus einem `CREATE FUNCTION`- oder `CREATE PROCEDURE`-Header, uebernimmt sie in ein editierbares Grid und erzeugt daraus einen lauffaehigen SQL-Block ab `BEGIN` inklusive `DECLARE`- und `SET`-Anweisungen.
+Der Converter liest die Parameter aus einem `CREATE FUNCTION`- oder `CREATE PROCEDURE`-Header, übernimmt sie in ein editierbares Grid und erzeugt daraus einen lauffähigen SQL-Block ab `BEGIN` inklusive `DECLARE`- und `SET`-Anweisungen.
 
-## Was das Tool macht
+## Was macht das Tool?
 
-- extrahiert `IN`, `OUT` und `INOUT`-Parameter aus dem SQL-Header
-- uebernimmt Name, Datentyp, Default-Wert und Kommentare in ein Grid
-- erlaubt das manuelle Anpassen der Parameterwerte vor der Ausgabe
-- fuegt automatisch `DECLARE`- und `SET`-Bloecke in den SQL-Body ein
-- kann `RETURN` sowie `OUT`/`INOUT`-Parameter optional in ein `SELECT` umwandeln
-- kann Kommentar-Marker wie `//***` in SQL-Kommentare `--` konvertieren
-- oeffnet die generierte Ausgabe direkt im konfigurierten Editor
+- Extrahiert `IN`, `OUT` und `INOUT`-Parameter aus dem SQL-Header
+- Übernimmt Bezeichnung, Datentyp, Default-Wert und Kommentare in ein Grid
+- Erlaubt manuelle Anpassungen von Parameterwerten vor der Ausgabe
+- Fügt automatisch `DECLARE`- und `SET`-Blöcke in den SQL-Body ein
+- Kann `RETURN` sowie `OUT`/`INOUT`-Parameter optional in ein `SELECT` umwandeln
+- Kann Kommentar-Marker wie `//***` in SQL-Kommentare `--` konvertieren
+- Öffnet die generierte Ausgabe direkt im konfigurierten Editor
 
 ## Anwendungsfall
 
-Das Projekt ist praktisch, wenn bestehende SQL Anywhere / ASA-Funktionen oder -Prozeduren schnell in einen testbaren Ausfuehrungsblock ueberfuehrt werden sollen, ohne Parameter jedes Mal von Hand als Variablen vorzubereiten.
+Das Projekt ist praktisch, wenn bestehende SQL Anywhere / ASA-Funktionen oder -Prozeduren schnell in einen testbaren Ausführungsblock überführt werden sollen, ohne Parameter jedes Mal von Hand als Variablen vorzubereiten.
 
-Typischer Ablauf:
+### Typischer Ablauf:
 
-1. SQL-Definition in die linke Eingabe einfuegen oder per Datei laden.
+1. SQL-Definition in die linke Eingabe einfügen oder per Datei laden.
 2. Mit `Konvert` die Parameter analysieren lassen.
 3. Werte im mittleren Grid anpassen.
 4. Mit `Aktualisieren` den Ausgabe-SQL-Block erzeugen.
-5. Die Ausgabe speichern oder direkt im Editor oeffnen.
+5. Die Ausgabe speichern oder direkt im Editor öffnen.
 
 ## Funktionen im Detail
 
 ### Parameter-Erkennung
 
-Unterstuetzt werden unter anderem:
+Unterstützt werden unter anderem:
 
 - `IN`, `OUT` und `INOUT`
-- Datentypen wie `VARCHAR(100)`, `INTEGER`, `DATE`, `LONG VARCHAR`
-- Default-Werte wie `DEFAULT NULL`, `DEFAULT ''` oder `DEFAULT TODAY()`
+- Datentypen wie `VARCHAR`, `LONG VARCHAR`, `INTEGER`, `NUMBERIC`, `DATE`, ...
 - Inline-Kommentare mit `//`, `/*` oder `--`
 
 ### Ausgabe-Erzeugung
 
-Die generierte Ausgabe beginnt beim `BEGIN`-Block der uebergebenen SQL-Definition. Der Converter:
-
-- fuegt neue `DECLARE`-Anweisungen fuer die Parameter ein
+Die generierte Ausgabe beginnt beim `BEGIN`-Block der übergebenen SQL-Definition. 
+Der Converter:
+- fügt neue `DECLARE`-Anweisungen für die Parameter ein
 - setzt vorhandene Werte per `SET`
-- ergaenzt bei Bedarf eine `SELECT`-Rueckgabe fuer `RETURN` und `OUT`-Parameter
+- ergänzt bei Bedarf eine `SELECT`-Rückgabe für `RETURN` und `OUT`-Parameter
 
 ### Editor-Integration
 
-Es koennen mehrere Editoren hinterlegt werden, z. B.:
-
+Es können mehrere Editoren hinterlegt werden, wie z.B.:
 - Notepad
 - Notepad++
 - Visual Studio Code
 
-Zusatzparameter fuer den Editor-Aufruf lassen sich ebenfalls speichern.
+![Editoren-Konfiguration](Misc/Screenshots/Editoren-Konfiguration.png)
+
+Zusatzparameter für den Editor-Aufruf lassen sich ebenfalls im Parameter-Edit speichern.
 
 ## Beispiel
 
@@ -70,7 +70,7 @@ BEGIN
 END;
 ```
 
-wird ein Ausgabeblock in dieser Art erzeugt:
+wird eine Ausgabe in dieser Art erzeugt:
 
 ```sql
 BEGIN
@@ -88,33 +88,35 @@ BEGIN
 END;
 ```
 
-Die genaue Ausgabe haengt von den gesetzten Optionen und den eingetragenen Parameterwerten ab.
+Die genaue Ausgabe hängt von den gesetzten Optionen und den eingetragenen Parameterwerten ab.
 
 ## Bedienung
 
 ### Hauptansicht
 
-- links: SQL-Eingabe
-- mitte: erkannte Parameter inklusive Werte und Kommentare
-- rechts: erzeugte Ausgabe
+- Links: SQL-Eingabe
+- Mitte: Erkannte Parameter inklusive Werte und Kommentare
+- Rechts: Ausführbare SQL-Anweisung
+
+![Beispiel-Aufruf](Misc/Screenshots/Beispiel.png)
 
 ### Wichtige Aktionen
 
-- `Konvert`: liest den Header ein und fuellt das Grid
-- `Aktualisieren`: uebernimmt die Grid-Werte in die Ausgabe
-- `Im Editor oeffnen`: schreibt die Ausgabe in eine Datei und startet den gewaehlten Editor
+- `Konvert`: Liest den Header ein und füllt das Grid
+- `Aktualisieren`: Übernimmt die Grid-Werte in die Ausgabe
+- `Im Editor öffnen`: Speichert die Ausgabe in eine Datei und öffnet diese im konfigurierten Standard-Editor
 
-### Nuetzliche Shortcuts
+### Nützliche Shortcuts
 
 - `F9`: Eingabe konvertieren
 - `F5`: Ausgabe aktualisieren
-- `F1`: aktuelle Spaltenbreite an Inhalt anpassen
-- `Entf`: aktuelle Grid-Zelle leeren
-- `Enter`: im Grid zur naechsten Zeile springen
+- `F1`: Aktuelle Spaltenbreite an Inhalt anpassen
+- `Entf`: Aktuelle Grid-Zelle leeren
+- `Enter`: Im Grid zur nächsten Zeile springen
 
 ## Konfiguration
 
-Die Anwendung speichert ihre Einstellungen standardmaessig unter:
+Die Anwendung speichert ihre Einstellungen standardmäßig unter:
 
 ```text
 %APPDATA%\SQL Function Converter\
@@ -122,9 +124,10 @@ Die Anwendung speichert ihre Einstellungen standardmaessig unter:
 
 Verwendete Dateien:
 
-- `Fx_Settings.ini` fuer Fensterzustand, Spalten, Theme und Konvertierungsoptionen
-- `Fx_Editors.ini` fuer Editor-Profile und den aktiven Ausgabe-Editor
-- `Fx_Output.sql` als temporaere/generierte Ausgabedatei fuer den Editor-Aufruf
+- `Fx_Settings.ini` für Fensterzustand, Spalten, Theme und Konvertierungsoptionen
+- `Fx_Editors.ini` für Editor-Profile und den aktiven Ausgabe-Editor
+- `Fx_Output.sql` als generierte Ausgabedatei für den Editor-Aufruf
+- `Fx_EditorTest.sql` als generierte Ausgabedatei für den Editor-Test
 
 Falls das Verzeichnis unter `%APPDATA%` nicht angelegt werden kann, verwendet die Anwendung stattdessen das Verzeichnis der EXE.
 
@@ -135,8 +138,8 @@ Falls das Verzeichnis unter `%APPDATA%` nicht angelegt werden kann, verwendet di
 |- SQLFunctionConverter.dpr        Projektstart
 |- Main.pas / Main.dfm             Hauptfenster und Konvertierungslogik
 |- EditorSettings.pas / .dfm       Verwaltung der Ausgabe-Editoren
-|- ConverterConst.pas              Konstanten und Konfigurationsschluessel
-|- Misc/Test-Functions/            Beispiel- und Test-SQLs
+|- ConverterConst.pas              Konstanten und Konfigurationsschlüssel
+|- Misc/Test-Functions/            Beispiel-/ und Test-SQLs
 `- Release/SQLFunctionConverter.exe Vorcompilierte EXE
 ```
 
@@ -156,14 +159,15 @@ Projektdatei:
 SQLFunctionConverter.dproj
 ```
 
-Zum Bauen einfach in Delphi/RAD Studio oeffnen und als `Win32` kompilieren.
+Zum Bauen einfach in Delphi/RAD Studio öffnen und als `Win32` kompilieren.
+Oder direkt die Release-Version aufrufen: [SQLFunctionConverter.exe](Release/SQLFunctionConverter.exe)
 
 ## Hinweise
 
-- Das Tool ist auf SQL-Header mit klassischem `CREATE FUNCTION`- bzw. `CREATE PROCEDURE`-Aufbau ausgelegt.
-- Die Erkennung basiert auf String-Verarbeitung und Regex, nicht auf einem vollstaendigen SQL-Parser.
-- Sehr spezielle oder ungewoehnlich formatierte Definitionen koennen daher Nacharbeit im Grid erfordern.
+- Das Tool ist auf SQL-Header mit klassischem `CREATE FUNCTION`- bzw. `CREATE PROCEDURE`-Aufbau ausgelegt
+- Die Erkennung basiert auf String-Verarbeitung und Regex, nicht auf einem vollständigen SQL-Parser
+- Sehr spezielle oder ungewöhnlich formatierte Definitionen können daher Nacharbeit im Grid erfordern
 
 ## Testdaten
 
-Unter [Misc/Test-Functions](Misc/Test-Functions) liegen mehrere Beispielskripte, mit denen sich die Konvertierung schnell ausprobieren laesst.
+Unter [Misc/Test-Functions](Misc/Test-Functions) liegen mehrere Beispielskripte, mit denen sich die Konvertierung schnell ausprobieren lässt.

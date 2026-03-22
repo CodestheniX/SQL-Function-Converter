@@ -1,7 +1,7 @@
 object frmEditorSettings: TfrmEditorSettings
   Left = 0
   Top = 0
-  Caption = 'Editor f'#252'r Ausgabe ausw'#228'hlen...'
+  Caption = 'Editoren verwalten...'
   ClientHeight = 199
   ClientWidth = 546
   Color = clBtnFace
@@ -19,8 +19,6 @@ object frmEditorSettings: TfrmEditorSettings
     Height = 166
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 506
-    ExplicitHeight = 152
     object splMain: TSplitter
       Left = 131
       Top = 1
@@ -36,7 +34,6 @@ object frmEditorSettings: TfrmEditorSettings
       Height = 164
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 150
       object lbxEditors: TListBox
         Left = 1
         Top = 31
@@ -55,7 +52,6 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         TabOrder = 0
         OnClick = lbxEditorsClick
-        ExplicitHeight = 94
       end
       object pnlEditorsHeader: TPanel
         Left = 1
@@ -90,7 +86,6 @@ object frmEditorSettings: TfrmEditorSettings
         Height = 24
         Align = alBottom
         TabOrder = 2
-        ExplicitTop = 125
         object btnAdd: TButton
           Left = 1
           Top = 1
@@ -133,8 +128,6 @@ object frmEditorSettings: TfrmEditorSettings
       Align = alClient
       TabOrder = 1
       TabStop = True
-      ExplicitWidth = 371
-      ExplicitHeight = 150
       DesignSize = (
         411
         164)
@@ -184,7 +177,6 @@ object frmEditorSettings: TfrmEditorSettings
         Height = 30
         Align = alTop
         TabOrder = 0
-        ExplicitWidth = 369
         object lblProperties: TLabel
           Left = 1
           Top = 1
@@ -224,7 +216,6 @@ object frmEditorSettings: TfrmEditorSettings
         ShowHint = True
         TabOrder = 1
         OnExit = edtNameExit
-        ExplicitWidth = 277
       end
       object edtPath: TEdit
         Left = 88
@@ -240,7 +231,6 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         TabOrder = 2
         OnExit = edtPathExit
-        ExplicitWidth = 256
       end
       object chkUseEditor: TCheckBox
         Left = 5
@@ -293,7 +283,6 @@ object frmEditorSettings: TfrmEditorSettings
         ParentFont = False
         TabOrder = 3
         OnClick = btnSelectPathClick
-        ExplicitLeft = 343
       end
       object edtParameter: TEdit
         Left = 88
@@ -311,7 +300,6 @@ object frmEditorSettings: TfrmEditorSettings
         ShowHint = False
         TabOrder = 4
         OnExit = edtParameterExit
-        ExplicitWidth = 277
       end
     end
   end
@@ -322,8 +310,6 @@ object frmEditorSettings: TfrmEditorSettings
     Height = 33
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 152
-    ExplicitWidth = 506
     object pnlButtons: TPanel
       Left = 373
       Top = 1
@@ -332,7 +318,6 @@ object frmEditorSettings: TfrmEditorSettings
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitLeft = 333
       object btnCancel: TButton
         Left = 91
         Top = 4
