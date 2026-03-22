@@ -1,6 +1,6 @@
 # SQL Function Converter
 
-![SQL Function Converter](Misc/Screenhots/Programm-Start.png)
+![SQL Function Converter](Misc/Screenshots/Programm-Start.png)
 
 Ein kleines Windows-Tool in Delphi/VCL zum schnellen Vorbereiten von SQL-Funktionen & SQL-Prozeduren für Tests, Debugging und manuelle Ausführung.
 
@@ -53,7 +53,7 @@ Es können mehrere Editoren hinterlegt werden, wie z.B.:
 - Notepad++
 - Visual Studio Code
 
-![Editoren-Konfiguration](Misc/Screenhots/Editoren-Konfiguration.png)
+![Editoren-Konfiguration](Misc/Screenshots/Editoren-Konfiguration.png)
 
 Zusatzparameter für den Editor-Aufruf lassen sich ebenfalls im Parameter-Edit speichern.
 
@@ -98,7 +98,7 @@ Die genaue Ausgabe hängt von den gesetzten Optionen und den eingetragenen Param
 - Mitte: Erkannte Parameter inklusive Werte und Kommentare
 - Rechts: Ausführbare SQL-Anweisung
 
-![Beispiel-Aufruf](Misc/Screenhots/Beispiel)
+![Beispiel-Aufruf](Misc/Screenshots/Beispiel)
 
 ### Wichtige Aktionen
 
