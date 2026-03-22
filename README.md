@@ -53,7 +53,7 @@ Es können mehrere Editoren hinterlegt werden, wie z.B.:
 - Notepad++
 - Visual Studio Code
 
-(Misc/Screenhots/Editoren-Konfiguration.png)
+![Editoren-Konfiguration](Misc/Screenhots/Editoren-Konfiguration.png)
 
 Zusatzparameter für den Editor-Aufruf lassen sich ebenfalls im Parameter-Edit speichern.
 
@@ -98,7 +98,7 @@ Die genaue Ausgabe hängt von den gesetzten Optionen und den eingetragenen Param
 - Mitte: Erkannte Parameter inklusive Werte und Kommentare
 - Rechts: Ausführbare SQL-Anweisung
 
-(Misc/Screenhots/Beispiel)
+![Beispiel-Aufruf](Misc/Screenhots/Beispiel)
 
 ### Wichtige Aktionen
 
