@@ -89,6 +89,7 @@ type
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
     procedure InitEditors;
+    procedure ApplySynEditTheme;
     procedure ParameterToGrid;
     procedure GridParameterToOutput;
     procedure ExtractComment(var sParameter, sComment: String);
@@ -160,6 +161,31 @@ begin
     pnlParameter.Width := iPanelWidth + 25;
   end;
 end;
+
+procedure TfrmSQLFunctionConverter.ApplySynEditTheme;
+var
+  clFontColor: TColor;
+begin
+  clFontColor := StyleServices.GetStyleFontColor(sfEditBoxTextNormal);
+
+  //Editor
+  synInput.Color := StyleServices.GetStyleColor(scEdit);
+  synInput.Font.Color := clFontColor;
+
+  synOutput.Color := synInput.Color;
+  synOutput.Font.Color := clFontColor;
+
+  //synInput.SelectedColor.Foreground := StyleServices.GetSystemColor(clHighlightText); -> Geht nicht, da der Highlighter das überschreibt...
+  synInput.SelectedColor.Background  := StyleServices.GetSystemColor(clHighlight);
+  synOutput.SelectedColor.Background := synInput.SelectedColor.Background;
+
+  //Rand (Gutter)
+  synInput.Gutter.Color := StyleServices.GetStyleColor(scPanel);
+  synInput.Gutter.Font.Color := clFontColor;
+
+  synOutput.Gutter.Color := synInput.Gutter.Color;
+  synOutput.Gutter.Font.Color := clFontColor;
+end;
 
 procedure TfrmSQLFunctionConverter.mitClearConfigClick(Sender: TObject);
 begin
@@ -321,6 +347,7 @@ begin
 
   //Styles
   InitStyles;
+  ApplySynEditTheme;
 
   //Falls was drin steht - Direkt konvertieren
   btnConvert.OnClick(self);

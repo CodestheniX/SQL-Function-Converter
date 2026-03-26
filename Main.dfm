@@ -68,7 +68,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Width = 448
         Height = 41
         Align = alBottom
-        TabOrder = 0
+        TabOrder = 1
         object btnConvert: TButton
           Left = 1
           Top = 1
@@ -92,14 +92,14 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Width = 448
         Height = 567
         Align = alClient
-        Font.Charset = DEFAULT_CHARSET
+        Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
-        Font.Name = 'Cascadia Code'
+        Font.Name = 'Source Code Pro'
         Font.Style = []
         Font.Quality = fqClearTypeNatural
         ParentColor = True
-        TabOrder = 1
+        TabOrder = 0
         UseCodeFolding = False
         ExtraLineSpacing = 1
         Gutter.DigitCount = 2
@@ -131,9 +131,8 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Highlighter = SynSQLHighlighter
         RightEdge = 0
         RightEdgeColor = clNone
-        SelectedColor.Background = clBlack
-        SelectedColor.Alpha = 0.400000005960464500
-        WantTabs = True
+        SelectedColor.Background = clSlategray
+        SelectedColor.Alpha = 0.250000000000000000
       end
     end
     object pnlOutput: TPanel
@@ -165,7 +164,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Width = 448
         Height = 41
         Align = alBottom
-        TabOrder = 0
+        TabOrder = 1
         object btnOpenOutput: TButton
           Left = 1
           Top = 1
@@ -192,11 +191,11 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
-        Font.Name = 'Cascadia Code'
+        Font.Name = 'Source Code Pro'
         Font.Style = []
         Font.Quality = fqClearTypeNatural
         ParentColor = True
-        TabOrder = 1
+        TabOrder = 0
         UseCodeFolding = False
         ExtraLineSpacing = 1
         Gutter.DigitCount = 2
@@ -228,9 +227,8 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Highlighter = SynSQLHighlighter
         RightEdge = 0
         RightEdgeColor = clNone
-        SelectedColor.Background = clBlack
-        SelectedColor.Alpha = 0.400000005960464500
-        WantTabs = True
+        SelectedColor.Background = clSlategray
+        SelectedColor.Alpha = 0.250000000000000000
         ExplicitLeft = 2
         ExplicitTop = 38
       end
@@ -250,11 +248,13 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Align = alTop
         Alignment = taCenter
         Caption = 'Parameter'
+        Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -24
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
+        ParentColor = False
         ParentFont = False
         ExplicitWidth = 125
       end
@@ -409,6 +409,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     Top = 529
   end
   object SynSQLHighlighter: TSynSQLSyn
+    SQLDialect = sqlSybase
     Left = 723
     Top = 529
   end
