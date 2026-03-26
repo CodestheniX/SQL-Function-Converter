@@ -107,6 +107,9 @@
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_MinorVer>1</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=;FileDescription=SQL Function Converter;FileVersion=1.1.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.CodestheniX.$(MSBuildProjectName);ProductName=SQL Function Converter;ProductVersion=1.1.0.0;Comments=</VerInfo_Keys>
+        <Icon_MainIcon>SQLFunctionConverter_Icon.ico</Icon_MainIcon>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
@@ -182,6 +185,12 @@
                 </DeployFile>
                 <DeployFile LocalName="Win32\Debug\SQLFunctionConverter.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="Win32\Debug\SQLFunctionConverter.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>SQLFunctionConverter.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win32\Release\SQLFunctionConverter.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>SQLFunctionConverter.exe</RemoteName>
                         <Overwrite>true</Overwrite>

@@ -181,11 +181,13 @@ begin
 
   //Rand (Gutter)
   synInput.Gutter.Color := StyleServices.GetStyleColor(scPanel);
-  synInput.Gutter.Font.Color := clFontColor;
+  synInput.Gutter.BorderColor := StyleServices.GetSystemColor(clWindow);
+  synInput.Gutter.Font.Color  := clFontColor;
 
   synOutput.Gutter.Color := synInput.Gutter.Color;
-  synOutput.Gutter.Font.Color := clFontColor;
-end;
+  synOutput.Gutter.BorderColor := synInput.Gutter.BorderColor;
+  synOutput.Gutter.Font.Color  := clFontColor;
+end;
 
 procedure TfrmSQLFunctionConverter.mitClearConfigClick(Sender: TObject);
 begin

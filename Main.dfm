@@ -229,8 +229,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         RightEdgeColor = clNone
         SelectedColor.Background = clSlategray
         SelectedColor.Alpha = 0.250000000000000000
-        ExplicitLeft = 2
-        ExplicitTop = 38
       end
     end
     object pnlParameter: TPanel
