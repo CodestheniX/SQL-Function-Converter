@@ -6,7 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.UITypes, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids,
   ClipBrd, IniFiles, Vcl.Menus, Vcl.ExtDlgs, Vcl.Styles, Vcl.Themes, System.IOUtils, ShellAPI,
-  System.RegularExpressions, EditorSettings, ConverterConst;
+  System.RegularExpressions, EditorSettings, ConverterConst, SynEdit,
+  SynEditHighlighter, SynHighlighterSQL;
 
 type
   TfrmSQLFunctionConverter = class(TForm)
@@ -14,8 +15,6 @@ type
     pnlInput: TPanel;
     pnlOutput: TPanel;
     splLeft: TSplitter;
-    memInput: TMemo;
-    memOutput: TMemo;
     pnlParameter: TPanel;
     lblParameter: TLabel;
     splRight: TSplitter;
@@ -50,6 +49,9 @@ type
     mitOpenConfigPath: TMenuItem;
     N4: TMenuItem;
     N5: TMenuItem;
+    synInput: TSynEdit;
+    SynSQLHighlighter: TSynSQLSyn;
+    synOutput: TSynEdit;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -87,6 +89,7 @@ type
     procedure InitGrid(FillHeader : boolean);
     procedure InitStyles;
     procedure InitEditors;
+    procedure ApplySynEditTheme;
     procedure ParameterToGrid;
     procedure GridParameterToOutput;
     procedure ExtractComment(var sParameter, sComment: String);
@@ -157,6 +160,33 @@ begin
     //Panel anpassen
     pnlParameter.Width := iPanelWidth + 25;
   end;
+end;
+
+procedure TfrmSQLFunctionConverter.ApplySynEditTheme;
+var
+  clFontColor: TColor;
+begin
+  clFontColor := StyleServices.GetStyleFontColor(sfEditBoxTextNormal);
+
+  //Editor
+  synInput.Color := StyleServices.GetStyleColor(scEdit);
+  synInput.Font.Color := clFontColor;
+
+  synOutput.Color := synInput.Color;
+  synOutput.Font.Color := clFontColor;
+
+  //synInput.SelectedColor.Foreground := StyleServices.GetSystemColor(clHighlightText); -> Geht nicht, da der Highlighter das überschreibt...
+  synInput.SelectedColor.Background  := StyleServices.GetSystemColor(clHighlight);
+  synOutput.SelectedColor.Background := synInput.SelectedColor.Background;
+
+  //Rand (Gutter)
+  synInput.Gutter.Color := StyleServices.GetStyleColor(scPanel);
+  synInput.Gutter.BorderColor := StyleServices.GetSystemColor(clWindow);
+  synInput.Gutter.Font.Color  := clFontColor;
+
+  synOutput.Gutter.Color := synInput.Gutter.Color;
+  synOutput.Gutter.BorderColor := synInput.Gutter.BorderColor;
+  synOutput.Gutter.Font.Color  := clFontColor;
 end;
 
 procedure TfrmSQLFunctionConverter.mitClearConfigClick(Sender: TObject);
@@ -319,6 +349,7 @@ begin
 
   //Styles
   InitStyles;
+  ApplySynEditTheme;
 
   //Falls was drin steht - Direkt konvertieren
   btnConvert.OnClick(self);
@@ -462,10 +493,10 @@ begin
     try
       try
         //Versuch die Datei als UTF-8 zu laden
-        memInput.Lines.LoadFromFile(dlgOpen.FileName, TEncoding.UTF8);
+        synInput.Lines.LoadFromFile(dlgOpen.FileName, TEncoding.UTF8);
       except
         //Wenn das nicht klappt - Im Default (ANSI) laden
-        memInput.Lines.LoadFromFile(dlgOpen.FileName);
+        synInput.Lines.LoadFromFile(dlgOpen.FileName);
       end;
       btnConvert.OnClick(self);
     except
@@ -495,7 +526,7 @@ end;
 procedure TfrmSQLFunctionConverter.mitSaveOutputClick(Sender: TObject);
 begin
   if (dlgSave.Execute) then begin
-    memOutput.Lines.SaveToFile(dlgSave.FileName, TEncoding.UTF8);
+    synOutput.Lines.SaveToFile(dlgSave.FileName, TEncoding.UTF8);
   end;
 end;
 
@@ -720,7 +751,7 @@ begin
   slStatement := TStringList.Create;
   try
     //Alles vor dem BEGIN kicken
-    slStatement.Text := memInput.Text;
+    slStatement.Text := synInput.Text;
     iPosStart := Pos(PROCEDURE_START, UpperCase(slStatement.Text));
     slStatement.Text := Trim(Copy(slStatement.Text, iPosStart, Length(slStatement.Text)));
 
@@ -739,7 +770,7 @@ begin
       slStatement.Text := TRegEx.Replace(slStatement.Text,'//\*+', '--');
     end;
 
-    memOutput.Lines.Assign(slStatement);
+    synOutput.Lines.Assign(slStatement);
   finally
     slStatement.Free;
   end;
@@ -770,7 +801,7 @@ begin
 
   sOutputFile := GetAppFilePath(OUTPUT_FILENAME);
   sParameters := GetActiveEditorProperty(EDITORS_KEY_PARAMETER) + ' "' + sOutputFile + '"';
-  TFile.WriteAllText(sOutputFile, memOutput.Lines.Text);
+  TFile.WriteAllText(sOutputFile, synOutput.Lines.Text);
 
   //Datei im Editor öffnen
   hRes := ShellExecute(
@@ -793,7 +824,7 @@ begin
   ;
 //  with Clipboard do begin
 //    Clear;
-//    AsText := memOutput.Text;
+//    AsText := synOutput.Text;
 //  end;
 end;
 
@@ -952,17 +983,17 @@ begin
   InitGrid(False);
   //Zuerst den Anfang und das Ende des Kopf ermitteln & die Paramter rausfiltern
   //Unschön, aber wir machen´s so - Zuerst nach dem ersten @ suchen und dann von der Stelle rückwärts nach der ersten "(" suchen wg. IN/OUT
-  iPosStart := Pos(PARAMETER_START, memInput.Text, 1);
-  while (iPosStart > 0) and (memInput.Text[iPosStart] <> '(') do begin
+  iPosStart := Pos(PARAMETER_START, synInput.Text, 1);
+  while (iPosStart > 0) and (synInput.Text[iPosStart] <> '(') do begin
     Dec(iPosStart);
   end;
-  iPosEnd := Pos(FUNCTION_END, UpperCase(memInput.Text), 1) - iPosStart;
+  iPosEnd := Pos(FUNCTION_END, UpperCase(synInput.Text), 1) - iPosStart;
   if (iPosEnd <= 0) then
-    iPosEnd := Pos(PROCEDURE_START, UpperCase(memInput.Text), 1) - iPosStart
+    iPosEnd := Pos(PROCEDURE_START, UpperCase(synInput.Text), 1) - iPosStart
   ;
 
   if (iPosStart <> 0) and (iPosEnd <> 0) then begin
-    sParameterHeader := Copy(memInput.Text, iPosStart + 1, iPosEnd);
+    sParameterHeader := Copy(synInput.Text, iPosStart + 1, iPosEnd);
     slParameter := TStringList.Create;
     try
       slParameter.Delimiter := ',';
@@ -1000,13 +1031,13 @@ var
 begin
   frmSQLFunctionConverter.Caption := PROGRAMM_NAME;
   //Prüfen, ob es sich um eine Funktion oder Prozedur handelt und alles davor entfernen
-  iPosStart := UpperCase(memInput.Text).IndexOf(CREATE_FUNCTION);
+  iPosStart := UpperCase(synInput.Text).IndexOf(CREATE_FUNCTION);
   if (iPosStart > -1) then
     iPosStart := iPosStart + Length(CREATE_FUNCTION)
   else
-    iPosStart := UpperCase(memInput.Text).IndexOf(CREATE_PROCEDURE) + Length(CREATE_PROCEDURE)
+    iPosStart := UpperCase(synInput.Text).IndexOf(CREATE_PROCEDURE) + Length(CREATE_PROCEDURE)
   ;
-  aFilename := Trim(Copy(memInput.Text, iPosStart, 50));
+  aFilename := Trim(Copy(synInput.Text, iPosStart, 50));
 
   //Nach der ersten offenen Klammer suchen und alles dazwischen als Filename speichern
   iPosEnd   := UpperCase(aFilename).IndexOf('(');

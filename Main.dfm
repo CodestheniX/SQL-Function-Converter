@@ -62,21 +62,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ExplicitWidth = 95
       end
-      object memInput: TMemo
-        Left = 1
-        Top = 30
-        Width = 448
-        Height = 567
-        Align = alClient
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        ScrollBars = ssVertical
-        TabOrder = 0
-      end
       object pnlInputButton: TPanel
         Left = 1
         Top = 597
@@ -100,6 +85,54 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
           TabOrder = 0
           OnClick = btnConvertClick
         end
+      end
+      object synInput: TSynEdit
+        Left = 1
+        Top = 30
+        Width = 448
+        Height = 567
+        Align = alClient
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Source Code Pro'
+        Font.Style = []
+        Font.Quality = fqClearTypeNatural
+        ParentColor = True
+        TabOrder = 0
+        UseCodeFolding = False
+        ExtraLineSpacing = 1
+        Gutter.DigitCount = 2
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Consolas'
+        Gutter.Font.Style = []
+        Gutter.ShowLineNumbers = True
+        Gutter.GradientSteps = 2
+        Gutter.Bands = <
+          item
+            Kind = gbkMarks
+            Width = 13
+          end
+          item
+            Kind = gbkLineNumbers
+          end
+          item
+            Kind = gbkFold
+          end
+          item
+            Kind = gbkTrackChanges
+          end
+          item
+            Kind = gbkMargin
+            Width = 3
+          end>
+        Highlighter = SynSQLHighlighter
+        RightEdge = 0
+        RightEdgeColor = clNone
+        SelectedColor.Background = clSlategray
+        SelectedColor.Alpha = 0.250000000000000000
       end
     end
     object pnlOutput: TPanel
@@ -125,21 +158,6 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         ParentFont = False
         ExplicitWidth = 101
       end
-      object memOutput: TMemo
-        Left = 1
-        Top = 30
-        Width = 448
-        Height = 567
-        Align = alClient
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        ScrollBars = ssVertical
-        TabOrder = 0
-      end
       object pnlOutputButton: TPanel
         Left = 1
         Top = 597
@@ -164,6 +182,54 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
           OnClick = btnOpenOutputClick
         end
       end
+      object synOutput: TSynEdit
+        Left = 1
+        Top = 30
+        Width = 448
+        Height = 567
+        Align = alClient
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Source Code Pro'
+        Font.Style = []
+        Font.Quality = fqClearTypeNatural
+        ParentColor = True
+        TabOrder = 0
+        UseCodeFolding = False
+        ExtraLineSpacing = 1
+        Gutter.DigitCount = 2
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Consolas'
+        Gutter.Font.Style = []
+        Gutter.ShowLineNumbers = True
+        Gutter.GradientSteps = 2
+        Gutter.Bands = <
+          item
+            Kind = gbkMarks
+            Width = 13
+          end
+          item
+            Kind = gbkLineNumbers
+          end
+          item
+            Kind = gbkFold
+          end
+          item
+            Kind = gbkTrackChanges
+          end
+          item
+            Kind = gbkMargin
+            Width = 3
+          end>
+        Highlighter = SynSQLHighlighter
+        RightEdge = 0
+        RightEdgeColor = clNone
+        SelectedColor.Background = clSlategray
+        SelectedColor.Alpha = 0.250000000000000000
+      end
     end
     object pnlParameter: TPanel
       Left = 454
@@ -180,11 +246,13 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Align = alTop
         Alignment = taCenter
         Caption = 'Parameter'
+        Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -24
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
+        ParentColor = False
         ParentFont = False
         ExplicitWidth = 125
       end
@@ -241,8 +309,8 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     end
   end
   object menMain: TMainMenu
-    Left = 20
-    Top = 33
+    Left = 476
+    Top = 529
     object mitDatei: TMenuItem
       Caption = 'Datei'
       object mitLoadScript: TMenuItem
@@ -326,8 +394,8 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     Encodings.Strings = (
       'UTF-8')
     ShowEncodingList = False
-    Left = 126
-    Top = 33
+    Left = 582
+    Top = 529
   end
   object dlgOpen: TOpenDialog
     Filter = 
@@ -335,7 +403,12 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       'n (*.*)|*.*'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Title = 'SQL-Datei ausw'#228'hlen'
-    Left = 75
-    Top = 33
+    Left = 531
+    Top = 529
+  end
+  object SynSQLHighlighter: TSynSQLSyn
+    SQLDialect = sqlSybase
+    Left = 659
+    Top = 529
   end
 end
