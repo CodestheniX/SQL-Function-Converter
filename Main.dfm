@@ -309,7 +309,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     end
   end
   object menMain: TMainMenu
-    Left = 540
+    Left = 476
     Top = 529
     object mitDatei: TMenuItem
       Caption = 'Datei'
@@ -394,7 +394,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     Encodings.Strings = (
       'UTF-8')
     ShowEncodingList = False
-    Left = 646
+    Left = 582
     Top = 529
   end
   object dlgOpen: TOpenDialog
@@ -403,12 +403,12 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       'n (*.*)|*.*'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Title = 'SQL-Datei ausw'#228'hlen'
-    Left = 595
+    Left = 531
     Top = 529
   end
   object SynSQLHighlighter: TSynSQLSyn
     SQLDialect = sqlSybase
-    Left = 723
+    Left = 659
     Top = 529
   end
 end
