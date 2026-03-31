@@ -52,6 +52,22 @@ type
     synInput: TSynEdit;
     SynSQLHighlighter: TSynSQLSyn;
     synOutput: TSynEdit;
+    popInput: TPopupMenu;
+    popInputUndo: TMenuItem;
+    popInputRedo: TMenuItem;
+    pI1: TMenuItem;
+    popInputCut: TMenuItem;
+    popInputCopy: TMenuItem;
+    popInputInsert: TMenuItem;
+    popOutput: TPopupMenu;
+    popOutputUndo: TMenuItem;
+    popOutputRedo: TMenuItem;
+    pO1: TMenuItem;
+    popOutputCut: TMenuItem;
+    popOutputCopy: TMenuItem;
+    popOutputInsert: TMenuItem;
+    pO2: TMenuItem;
+    popOutputOpen: TMenuItem;
     procedure btnConvertClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -73,6 +89,11 @@ type
     procedure mitEditorConfigClick(Sender: TObject);
     procedure mitConvertCommentsClick(Sender: TObject);
     procedure mitOpenConfigPathClick(Sender: TObject);
+    procedure popUndoClick(Sender: TObject);
+    procedure popRedoClick(Sender: TObject);
+    procedure popCutClick(Sender: TObject);
+    procedure popCopyClick(Sender: TObject);
+    procedure popInsertClick(Sender: TObject);
   private
     ConfigFile : TIniFile; //Konfigurationen für die Main-Form
     EditorsFile: TIniFile; //Hinterlegte Editoren & aktiver Editor
@@ -84,6 +105,7 @@ type
     function GetOutParameterList: TStringlist;
     function GetAppFilePath(sFilename: String): String;
     function GetActiveEditorProperty(sSection : String): String;
+    function GetActiveSynEdit(Sender: TObject): TSynEdit;
     function FindEditorExe(const sExeName: string): string;
     procedure InitForm;
     procedure InitGrid(FillHeader : boolean);
@@ -1022,6 +1044,36 @@ begin
       slParameter.Free;
     end;
   end;
+end;
+
+function TfrmSQLFunctionConverter.GetActiveSynEdit(Sender: TObject): TSynEdit;
+begin
+  Result := TPopupMenu((Sender as TMenuItem).GetParentMenu).PopupComponent as TSynEdit;
+end;
+
+procedure TfrmSQLFunctionConverter.popCopyClick(Sender: TObject);
+begin
+  GetActiveSynEdit(Sender).CopyToClipboard;
+end;
+
+procedure TfrmSQLFunctionConverter.popCutClick(Sender: TObject);
+begin
+  GetActiveSynEdit(Sender).CutToClipboard;
+end;
+
+procedure TfrmSQLFunctionConverter.popInsertClick(Sender: TObject);
+begin
+  GetActiveSynEdit(Sender).PasteFromClipboard;
+end;
+
+procedure TfrmSQLFunctionConverter.popRedoClick(Sender: TObject);
+begin
+  GetActiveSynEdit(Sender).Redo;
+end;
+
+procedure TfrmSQLFunctionConverter.popUndoClick(Sender: TObject);
+begin
+  GetActiveSynEdit(Sender).Undo;
 end;
 
 procedure TfrmSQLFunctionConverter.SetSavefileName;
