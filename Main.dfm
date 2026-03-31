@@ -99,6 +99,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Font.Style = []
         Font.Quality = fqClearTypeNatural
         ParentColor = True
+        PopupMenu = popInput
         TabOrder = 0
         UseCodeFolding = False
         ExtraLineSpacing = 1
@@ -195,6 +196,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
         Font.Style = []
         Font.Quality = fqClearTypeNatural
         ParentColor = True
+        PopupMenu = popOutput
         TabOrder = 0
         UseCodeFolding = False
         ExtraLineSpacing = 1
@@ -309,7 +311,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     end
   end
   object menMain: TMainMenu
-    Left = 476
+    Left = 492
     Top = 529
     object mitDatei: TMenuItem
       Caption = 'Datei'
@@ -394,7 +396,7 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
     Encodings.Strings = (
       'UTF-8')
     ShowEncodingList = False
-    Left = 582
+    Left = 598
     Top = 529
   end
   object dlgOpen: TOpenDialog
@@ -403,12 +405,73 @@ object frmSQLFunctionConverter: TfrmSQLFunctionConverter
       'n (*.*)|*.*'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Title = 'SQL-Datei ausw'#228'hlen'
-    Left = 531
+    Left = 547
     Top = 529
   end
   object SynSQLHighlighter: TSynSQLSyn
     SQLDialect = sqlSybase
-    Left = 659
+    Left = 675
     Top = 529
+  end
+  object popInput: TPopupMenu
+    Left = 491
+    Top = 468
+    object popInputUndo: TMenuItem
+      Caption = 'R'#252'ckg'#228'ngig'
+      OnClick = popUndoClick
+    end
+    object popInputRedo: TMenuItem
+      Caption = 'Wiederholen'
+      OnClick = popRedoClick
+    end
+    object pI1: TMenuItem
+      Caption = '-'
+    end
+    object popInputCut: TMenuItem
+      Caption = 'Ausschneiden'
+      OnClick = popCutClick
+    end
+    object popInputCopy: TMenuItem
+      Caption = 'Kopieren'
+      OnClick = popCopyClick
+    end
+    object popInputInsert: TMenuItem
+      Caption = 'Einf'#252'gen'
+      OnClick = popInsertClick
+    end
+  end
+  object popOutput: TPopupMenu
+    Left = 558
+    Top = 468
+    object popOutputUndo: TMenuItem
+      Caption = 'R'#252'ckg'#228'ngig'
+      OnClick = popUndoClick
+    end
+    object popOutputRedo: TMenuItem
+      Caption = 'Wiederholen'
+      OnClick = popRedoClick
+    end
+    object pO1: TMenuItem
+      Caption = '-'
+    end
+    object popOutputCut: TMenuItem
+      Caption = 'Ausschneiden'
+      OnClick = popCutClick
+    end
+    object popOutputCopy: TMenuItem
+      Caption = 'Kopieren'
+      OnClick = popCopyClick
+    end
+    object popOutputInsert: TMenuItem
+      Caption = 'Einf'#252'gen'
+      OnClick = popInsertClick
+    end
+    object pO2: TMenuItem
+      Caption = '-'
+    end
+    object popOutputOpen: TMenuItem
+      Caption = 'Im Editor '#246'ffnen'
+      OnClick = btnOpenOutputClick
+    end
   end
 end
