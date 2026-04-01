@@ -171,3 +171,7 @@ Oder direkt die Release-Version aufrufen: [SQL Function Converter.exe](Release/S
 ## Testdaten
 
 Unter [Misc/Test-Functions](Misc/Test-Functions) liegen mehrere Beispielskripte, mit denen sich die Konvertierung schnell ausprobieren lässt.
+
+## Hinweis zur Dokumentation
+Diese Dokumentation wurde mit Unterstützung von ChatGPT erstellt.  
+Die Inhalte wurden anschließend geprüft, angepasst und an das Projekt angeglichen.
