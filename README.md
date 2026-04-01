@@ -160,7 +160,7 @@ SQLFunctionConverter.dproj
 ```
 
 Zum Bauen einfach in Delphi/RAD Studio öffnen und als `Win32` kompilieren.
-Oder direkt die Release-Version aufrufen: [SQLFunctionConverter.exe](Release/SQLFunctionConverter.exe)
+Oder direkt die Release-Version aufrufen: [SQL Function Converter.exe](Release/SQL%20Function%20Converter.exe)
 
 ## Hinweise
 
